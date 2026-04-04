@@ -64,40 +64,49 @@ const monthlyExpenses = statsData.monthlyExpenses;
       <div className="quick-actions">
         <h3 className="section-title">Quick Actions</h3>
         <div className="action-row">
-          <button
-            id="dashboard-add-load"
-            className="action-btn action-green"
-            onClick={() => navigate('/add-load')}
-          >
-            <span>📥</span>
-            <span>Add Load</span>
-          </button>
-          <button
-            id="dashboard-add-expense"
-            className="action-btn action-orange"
-            onClick={() => navigate('/add-expense')}
-          >
-            <span>💸</span>
-            <span>Add Expense</span>
-          </button>
-          <button
-            id="dashboard-sell"
-            className="action-btn action-teal"
-            onClick={() => navigate('/sell-load')}
-          >
-            <span>🛒</span>
-            <span>Sell Load</span>
-          </button>
-          <button
-            id="dashboard-retailers"
-            className="action-btn action-blue"
-            onClick={() => navigate('/retailers')}
-          >
-            <span>🏪</span>
-            <span>Retailers</span>
-          </button>
-        </div>
+  <button
+    className="action-btn action-green"
+    onClick={() => navigate('/add-load')}
+  >
+    <span>📥</span>
+    <span>Add Load</span>
+  </button>
+
+  <button
+    className="action-btn action-orange"
+    onClick={() => navigate('/add-expense')}
+  >
+    <span>💸</span>
+    <span>Add Expense</span>
+  </button>
+
+  <button
+    className="action-btn action-teal"
+    onClick={() => navigate('/sell-load')}
+  >
+    <span>🛒</span>
+    <span>Sell Load</span>
+  </button>
+
+  <button
+    className="action-btn action-blue"
+    onClick={() => navigate('/retailers')}
+  >
+    <span>🏪</span>
+    <span>Retailers</span>
+  </button>
+
+  {/* ✅ NEW BUTTON */}
+  <button
+    className="action-btn action-blue"
+    onClick={() => navigate('/transactions')}
+  >
+    <span>📄</span>
+    <span>Transactions</span>
+  </button>
+</div>
       </div>
+       
 
       <div className="section-spacer" />
     </div>

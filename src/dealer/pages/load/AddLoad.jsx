@@ -6,7 +6,7 @@ import './AddLoad.css';
 const GRAMS_OPTIONS = ['50g', '100g', '150g', '200g', '250g', '500g', '1kg'];
 
 export default function AddLoad() {
-  const { addLoad, inventory } = useStore();
+  const { addLoad, inventory,addTransaction } = useStore();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -45,6 +45,16 @@ export default function AddLoad() {
     });
     navigate('/dashboard');
   };
+  // 📁 src/pages/AddLoad.jsx
+
+addTransaction({
+  type: 'company',
+  name: form.supplierName,
+  product: form.itemName || '',
+  amount: Number(form.amountPaid),
+  date: new Date().toLocaleDateString(),
+  time: new Date().toLocaleTimeString()
+});
 
   return (
     <div className="screen">

@@ -6,7 +6,7 @@ import './SellLoad.css';
 const STEPS = ['Retailer', 'Items', 'Payment', 'Preview'];
 
 export default function SellLoad() {
-  const { inventory, retailers, addSellLoad, addRetailer } = useStore();
+  const { inventory, retailers, addSellLoad, addRetailer ,addTransaction} = useStore();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
@@ -125,6 +125,9 @@ export default function SellLoad() {
       ownerName = newRetailer.ownerName;
       phone = newRetailer.phone;
     }
+    // 📁 src/pages/SellLoad.jsx
+
+
 
     addSellLoad({
       retailerId,
@@ -145,6 +148,14 @@ export default function SellLoad() {
       balance,
       date: saleDate,
     });
+    addTransaction({
+  type: 'retailer',
+  name: shopName,
+  product: items.map((it) => getItemById(it.itemId)?.name || '').join(', '),
+  amount: Number(amountPaid || 0),
+  date: new Date().toLocaleDateString(),
+  time: new Date().toLocaleTimeString()
+});
 
     navigate('/selling-loads');
   };

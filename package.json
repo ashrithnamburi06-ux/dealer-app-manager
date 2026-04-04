@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "6.26.1"
@@ -19,6 +21,6 @@
     "vite-plugin-pwa": "1.2.0"
   },
   "engines": {
-  "node": "24.x"
-}
+    "node": "24.x"
+  }
 }

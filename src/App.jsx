@@ -9,6 +9,7 @@ import Welcome from './dealer/pages/auth/Welcome';
 
 // Dashboard
 import Dashboard from './dealer/pages/dashboard/Dashboard';
+import TransactionHistory from "./dealer/pages/TransactionHistory";
 
 // Inventory
 import InventoryList from './dealer/pages/inventory/InventoryList';
@@ -92,6 +93,7 @@ function AppRoutes() {
         <ProtectedRoute><AppLayout><SellLoad /></AppLayout></ProtectedRoute>
       } />
 
+
       <Route path="/retailers" element={
         <ProtectedRoute><AppLayout><RetailerList /></AppLayout></ProtectedRoute>
       } />
@@ -115,6 +117,7 @@ function AppRoutes() {
       <Route path="/profile" element={
         <ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>
       } />
+      <Route path="/transactions" element={<TransactionHistory />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

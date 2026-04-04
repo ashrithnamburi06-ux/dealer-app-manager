@@ -1,0 +1,130 @@
+/* Screen */
+.transactions-screen {
+  background: #f3f4f6;
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* 🔵 Header (same as sell flow style) */
+.transactions-header {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  height: 90px;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  color: #fff;
+  border-radius: 0 0 20px 20px;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Content */
+.transactions-content {
+  padding: 16px;
+}
+
+/* Tabs (same feel as toggle) */
+.tabs {
+  display: flex;
+  border: 1.5px solid #2563eb;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Export button */
+.export-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+/* 🔥 Transaction Card (NEW - like item-row-card) */
+.transaction-card {
+  background: #f9fafb;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  border: 1.5px solid #e6f0ff;
+}
+
+/* Row inside card */
+.transaction-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Name */
+.transaction-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+/* Sub text */
+.transaction-sub {
+  font-size: 12px;
+  color: #888;
+}
+
+/* Amount */
+.transaction-amount {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* Amount colors */
+.amount-green {
+  color: #2563eb;
+}
+
+.amount-red {
+  color: #e53935;
+}
+
+/* Date */
+.transaction-date {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  margin-top: 60px;
+  color: #6b7280;
+}

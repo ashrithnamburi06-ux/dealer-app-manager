@@ -235,6 +235,17 @@ export function StoreProvider({ children }) {
   const addExpense = (expense) => {
     setExpenses((prev) => [...prev, { ...expense, id: Date.now() }]);
   };
+  // 📁 src/data/mockStore.js
+
+const addTransaction = (tx) => {
+  setTransactions((prev) => [
+    {
+      id: Date.now(),
+      ...tx
+    },
+    ...prev
+  ]);
+};
 
   // ── DASHBOARD ──────────────────────────────────────
   const getDashboardStats = () => {
@@ -249,9 +260,9 @@ export function StoreProvider({ children }) {
 
     return { totalItems, lowStock, totalPending, monthlyExpenses };
   };
-
+    
   const value = {
-    user, login, logout,
+    user, login, logout,addTransaction,
 
     inventory, addInventoryItem, updateInventoryItem, deleteInventoryItem,
     loads, addLoad,
@@ -268,8 +279,10 @@ export function StoreProvider({ children }) {
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 
+
 export function useStore() {
   const ctx = useContext(StoreContext);
   if (!ctx) throw new Error('useStore must be used inside StoreProvider');
   return ctx;
 }
+
