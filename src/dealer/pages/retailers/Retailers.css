@@ -1,0 +1,119 @@
+.retailers-summary {
+  padding: 0 20px 8px;
+}
+
+.search-wrap { margin-bottom: 12px; }
+
+.retailer-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  transition: transform 0.15s;
+}
+
+.retailer-card:active { transform: scale(0.98); }
+
+.r-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.r-avatar {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  border-radius: 50%;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.r-info { flex: 1; min-width: 0; }
+.r-shop { font-size: 14.5px; font-weight: 700; color: #222; margin: 0 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-owner { font-size: 12.5px; color: #888; margin: 0 0 2px; }
+.r-date { font-size: 11.5px; color: #aaa; margin: 0; }
+
+.r-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.r-arrow { font-size: 20px; color: #ccc; }
+
+/* Retailer Details */
+.retailer-profile-card {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  border-radius: 20px;
+  padding: 24px 20px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 50%;
+  color: white;
+  font-size: 28px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.profile-shop { font-size: 20px; font-weight: 800; color: #fff; margin: 0 0 4px; }
+.profile-owner { font-size: 14px; color: rgba(255,255,255,0.8); margin: 0 0 14px; }
+
+.profile-actions { display: flex; gap: 10px; justify-content: center; }
+
+.action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.3);
+}
+
+/* Pending card */
+.pending-card {
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.pending-card-red { background: #ffebee; }
+.pending-card-green { background: #e6f0ff; }
+
+.pending-row { display: flex; align-items: center; justify-content: space-between; }
+.pending-label { font-size: 12px; color: #888; margin: 0 0 4px; }
+.pending-amount { font-size: 24px; font-weight: 800; color: #c62828; margin: 0; }
+.pending-card-green .pending-amount { color: #2563eb; }
+
+/* Load history */
+.load-hist-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.load-hist-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.load-hist-date { font-size: 12px; color: #888; margin: 0 0 3px; }
+.load-hist-items { font-size: 13.5px; font-weight: 600; color: #333; margin: 0; }
+.load-hist-right { text-align: right; }
+.load-hist-total { font-size: 15px; font-weight: 800; color: #222; margin: 0 0 4px; }
+
+.empty-text { font-size: 13px; color: #aaa; padding: 8px 0; }

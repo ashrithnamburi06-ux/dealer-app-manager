@@ -1,0 +1,59 @@
+.inv-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px 8px;
+}
+
+.inv-total { font-size: 13px; color: #555; font-weight: 500; }
+
+.inv-low-badge {
+  background: #ffebee;
+  color: #e53935;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.inv-card {
+  margin-bottom: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border-left: 4px solid transparent;
+}
+
+.inv-ok { background: #fff; border-left-color: #2563eb; }
+.inv-low { background: #fff9f9; border-left-color: #e53935; }
+
+.inv-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.inv-name { font-size: 15px; font-weight: 700; color: #222; margin: 0 0 3px; }
+.inv-sub { font-size: 12.5px; color: #888; margin: 0; }
+
+.inv-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding-top: 4px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.inv-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.inv-stat-val { font-size: 17px; font-weight: 800; color: #222; }
+.inv-stat-lbl { font-size: 10.5px; color: #999; margin-top: 1px; }
+
+.inv-actions {
+  display: flex;
+  gap: 8px;
+}

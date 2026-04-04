@@ -1,0 +1,75 @@
+.welcome-screen {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #1d4ed8 0%, #2563eb 70%, #e6f0ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-animation {
+  text-align: center;
+  animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.welcome-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: bounce 0.8s ease infinite alternate;
+}
+
+.welcome-heading {
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+}
+
+.welcome-name {
+  font-size: 32px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 6px;
+}
+
+.welcome-agency {
+  font-size: 16px;
+  color: rgba(255,255,255,0.8);
+  margin: 0 0 32px;
+}
+
+.welcome-loader {
+  width: 200px;
+  height: 4px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 4px;
+  margin: 0 auto 12px;
+  overflow: hidden;
+}
+
+.loader-bar {
+  height: 100%;
+  background: #ffffff;
+  border-radius: 4px;
+  animation: load 2s linear forwards;
+}
+
+.welcome-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  margin: 0;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-12px); }
+}
+
+@keyframes load {
+  from { width: 0%; }
+  to { width: 100%; }
+}

@@ -1,0 +1,22 @@
+.form-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2563eb;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 16px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1.5px solid #e6f0ff;
+}
+
+.pending-chip {
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.pending-red { background: #ffebee; color: #c62828; }
+.pending-green { background: #e6f0ff; color: #2563eb; }
