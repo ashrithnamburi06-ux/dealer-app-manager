@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { StoreProvider, useStore } from './dealer/data/mockStore';
 import Navbar from './dealer/components/Navbar';
-
+import InstallButton from './dealer/components/InstallButton'; // ✅ make sure this file exists
 
 // Auth
 import Login from './dealer/pages/auth/Login';
@@ -35,47 +35,86 @@ import ExpenseList from './dealer/pages/expenses/ExpenseList';
 // Profile
 import Profile from './dealer/pages/profile/Profile';
 
-// ── Protected Layout ─────────────────────────────────────────
+
+// ── Protected Layout ─────────────────────────
 function AppLayout({ children }) {
   return (
     <div className="app-shell">
       <div className="app-content">{children}</div>
       <Navbar />
-      <InstallButton /> {/* 🔥 Install button added globally */}
+      <InstallButton /> {/* ✅ safe now */}
     </div>
   );
 }
 
-// ── Auth Guard ───────────────────────────────────────────────
+// ── Auth Guard ───────────────────────────────
 function ProtectedRoute({ children }) {
   const { user } = useStore();
   if (!user) return <Navigate to="/" replace />;
   return children;
 }
 
-// ── Router ───────────────────────────────────────────────────
+// ── Router ───────────────────────────────────
 function AppRoutes() {
   const { user } = useStore();
 
   return (
     <Routes>
       {/* Public */}
-      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route
+        path="/"
+        element={user ? <Navigate to="/dashboard" replace /> : <Login />}
+      />
       <Route path="/welcome" element={<Welcome />} />
 
-      {/* Protected with bottom nav */}
-      <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
-      <Route path="/inventory" element={<ProtectedRoute><AppLayout><InventoryList /></AppLayout></ProtectedRoute>} />
-      <Route path="/inventory/add" element={<ProtectedRoute><AppLayout><AddItem /></AppLayout></ProtectedRoute>} />
-      <Route path="/inventory/edit/:id" element={<ProtectedRoute><AppLayout><EditItem /></AppLayout></ProtectedRoute>} />
-      <Route path="/add-load" element={<ProtectedRoute><AppLayout><AddLoad /></AppLayout></ProtectedRoute>} />
-      <Route path="/sell-load" element={<ProtectedRoute><AppLayout><SellLoad /></AppLayout></ProtectedRoute>} />
-      <Route path="/retailers" element={<ProtectedRoute><AppLayout><RetailerList /></AppLayout></ProtectedRoute>} />
-      <Route path="/retailers/:id" element={<ProtectedRoute><AppLayout><RetailerDetails /></AppLayout></ProtectedRoute>} />
-      <Route path="/selling-loads" element={<ProtectedRoute><AppLayout><SellingLoads /></AppLayout></ProtectedRoute>} />
-      <Route path="/add-expense" element={<ProtectedRoute><AppLayout><AddExpense /></AppLayout></ProtectedRoute>} />
-      <Route path="/expenses" element={<ProtectedRoute><AppLayout><ExpenseList /></AppLayout></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
+      {/* Protected */}
+      <Route path="/dashboard" element={
+        <ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/inventory" element={
+        <ProtectedRoute><AppLayout><InventoryList /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/inventory/add" element={
+        <ProtectedRoute><AppLayout><AddItem /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/inventory/edit/:id" element={
+        <ProtectedRoute><AppLayout><EditItem /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/add-load" element={
+        <ProtectedRoute><AppLayout><AddLoad /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/sell-load" element={
+        <ProtectedRoute><AppLayout><SellLoad /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/retailers" element={
+        <ProtectedRoute><AppLayout><RetailerList /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/retailers/:id" element={
+        <ProtectedRoute><AppLayout><RetailerDetails /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/selling-loads" element={
+        <ProtectedRoute><AppLayout><SellingLoads /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/add-expense" element={
+        <ProtectedRoute><AppLayout><AddExpense /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/expenses" element={
+        <ProtectedRoute><AppLayout><ExpenseList /></AppLayout></ProtectedRoute>
+      } />
+
+      <Route path="/profile" element={
+        <ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>
+      } />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -83,7 +122,7 @@ function AppRoutes() {
   );
 }
 
-// ── Root App ─────────────────────────────────────────────────
+// ── Root App ─────────────────────────────────
 export default function App() {
   return (
     <StoreProvider>

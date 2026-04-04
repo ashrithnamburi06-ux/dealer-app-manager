@@ -1,9 +1,10 @@
 // ============================================================
 // DEALER APP - CENTRALIZED MOCK DATA STORE
-// Single source of truth for all modules
+// UPDATED WITH TRANSACTIONS (PAYMENT + BILL + IMAGE)
 // ============================================================
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+
 
 // ─── Initial Mock Data ───────────────────────────────────────
 
@@ -79,7 +80,7 @@ const initialExpenses = [
   { id: 2, amount: 200, date: '2026-04-02', note: 'Printing' },
 ];
 
-const initialUser = null;
+const initialUser = JSON.parse(localStorage.getItem("user")) || null;
 
 // ─── Context ─────────────────────────────────────────────────
 
@@ -92,6 +93,26 @@ export function StoreProvider({ children }) {
   const [loads, setLoads] = useState(initialLoads);
   const [sellLoads, setSellLoads] = useState(initialSellLoads);
   const [expenses, setExpenses] = useState(initialExpenses);
+
+  // 🔥 NEW: TRANSACTIONS STATE
+  const [transactions, setTransactions] = useState(() => {
+  const saved = localStorage.getItem("transactions");
+  return saved ? JSON.parse(saved) : [];
+});
+useEffect(() => {
+  localStorage.setItem("transactions", JSON.stringify(transactions));
+}, [transactions]);
+
+  // ── Auth ─────────────────────────────────────────────
+  const login = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+  };
 
   // ── Inventory Actions ────────────────────────────────
   const addInventoryItem = (item) => {
@@ -121,37 +142,40 @@ export function StoreProvider({ children }) {
     );
   };
 
- const addStockFromLoad = (itemName, grams, boxesAdded) => {
-  setInventory((prev) => {
-    const exists = prev.find((i) => i.name === itemName && i.grams === grams);
+  const addStockFromLoad = (itemName, grams, boxesAdded) => {
+    setInventory((prev) => {
+      const exists = prev.find((i) => i.name === itemName && i.grams === grams);
 
-    if (exists) {
-      return prev.map((i) =>
-        i.name === itemName && i.grams === grams
-          ? { ...i, boxes: i.boxes + Number(boxesAdded) }
-          : i
-      );
-    }
+      if (exists) {
+        return prev.map((i) =>
+          i.name === itemName && i.grams === grams
+            ? { ...i, boxes: i.boxes + Number(boxesAdded) }
+            : i
+        );
+      }
 
-    // ✅ If item does NOT exist → create new item
-    return [
-      ...prev,
-      {
-        id: Date.now(),
-        name: itemName,
-        grams,
-        boxes: Number(boxesAdded),
-        pieces: 0,
-        price: 0,
-        minStock: 5,
-      },
-    ];
-  });
-};
+      return [
+        ...prev,
+        {
+          id: Date.now(),
+          name: itemName,
+          grams,
+          boxes: Number(boxesAdded),
+          pieces: 0,
+          price: 0,
+          minStock: 5,
+        },
+      ];
+    });
+  };
 
   // ── Load Actions ─────────────────────────────────────
   const addLoad = (load) => {
-    const newLoad = { ...load, id: Date.now(), date: new Date().toISOString().split('T')[0] };
+    const newLoad = {
+      ...load,
+      id: Date.now(),
+      date: new Date().toISOString().split('T')[0],
+    };
     setLoads((prev) => [...prev, newLoad]);
     addStockFromLoad(load.itemName, load.grams, load.boxes || 0);
   };
@@ -161,40 +185,45 @@ export function StoreProvider({ children }) {
     const newSell = { ...sell, id: Date.now() };
     setSellLoads((prev) => [...prev, newSell]);
     deductInventory(sell.items);
-    // Update retailer pending
+
     setRetailers((prev) => {
-  const exists = prev.find((r) => r.id === sell.retailerId);
+      const exists = prev.find((r) => r.id === sell.retailerId);
 
-  if (exists) {
-    return prev.map((r) =>
-      r.id === sell.retailerId
-        ? {
-            ...r,
-            pendingAmount: r.pendingAmount + sell.balance,
-            lastPurchase: sell.date,
-          }
-        : r
-    );
-  }
+      if (exists) {
+        return prev.map((r) =>
+          r.id === sell.retailerId
+            ? {
+                ...r,
+                pendingAmount: r.pendingAmount + sell.balance,
+                lastPurchase: sell.date,
+              }
+            : r
+        );
+      }
 
-  // ✅ If retailer NOT exists → create new
-  return [
-    ...prev,
-    {
-      id: sell.retailerId || Date.now(),
-      shopName: sell.shopName,
-      ownerName: sell.ownerName,
-      phone: sell.phone,
-      pendingAmount: sell.balance,
-      lastPurchase: sell.date,
-    },
-  ];
-});
+      return [
+        ...prev,
+        {
+          id: sell.retailerId || Date.now(),
+          shopName: sell.shopName,
+          ownerName: sell.ownerName,
+          phone: sell.phone,
+          pendingAmount: sell.balance,
+          lastPurchase: sell.date,
+        },
+      ];
+    });
   };
 
   // ── Retailer Actions ─────────────────────────────────
+
   const addRetailer = (retailer) => {
-    const newRetailer = { ...retailer, id: Date.now(), pendingAmount: 0, lastPurchase: '' };
+    const newRetailer = {
+      ...retailer,
+      id: Date.now(),
+      pendingAmount: 0,
+      lastPurchase: '',
+    };
     setRetailers((prev) => [...prev, newRetailer]);
   };
 
@@ -202,7 +231,8 @@ export function StoreProvider({ children }) {
     setRetailers((prev) => prev.map((r) => (r.id === id ? { ...r, ...updated } : r)));
   };
 
-  const recordPayment = (retailerId, amount) => {
+  // 🔥 UPDATED PAYMENT (WITH DATE + TRANSACTION)
+  const recordPayment = (retailerId, amount, date) => {
     setRetailers((prev) =>
       prev.map((r) =>
         r.id === retailerId
@@ -210,6 +240,31 @@ export function StoreProvider({ children }) {
           : r
       )
     );
+
+    const newTransaction = {
+      id: Date.now(),
+      retailerId,
+      type: "payment",
+      amount: Number(amount),
+      date,
+      image: null,
+    };
+
+    setTransactions((prev) => [newTransaction, ...prev]);
+  };
+
+  // 🔥 NEW BILL FUNCTION (WITH IMAGE)
+  const addBill = (retailerId, amount, date, image) => {
+    const newTransaction = {
+      id: Date.now(),
+      retailerId,
+      type: "bill",
+      amount: Number(amount),
+      date,
+      image,
+    };
+
+    setTransactions((prev) => [newTransaction, ...prev]);
   };
 
   // ── Expense Actions ──────────────────────────────────
@@ -218,7 +273,7 @@ export function StoreProvider({ children }) {
     setExpenses((prev) => [...prev, newExpense]);
   };
 
-  // ── Computed Dashboard Stats ─────────────────────────
+  // ── Dashboard Stats ──────────────────────────────────
   const getDashboardStats = () => {
     const totalItems = inventory.length;
     const lowStock = inventory.filter((i) => i.boxes <= i.minStock);
@@ -233,11 +288,19 @@ export function StoreProvider({ children }) {
   };
 
   const value = {
-    user, setUser,
+    user, login, logout,
+
     inventory, addInventoryItem, updateInventoryItem, deleteInventoryItem,
     loads, addLoad,
     sellLoads, addSellLoad,
-    retailers, addRetailer, updateRetailer, recordPayment,
+
+    retailers, addRetailer, updateRetailer,
+
+    // 🔥 NEW
+    transactions,
+    recordPayment,
+    addBill,
+
     expenses, addExpense,
     getDashboardStats,
   };

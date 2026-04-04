@@ -1,31 +1,52 @@
+/* ── Summary ───────────────────────── */
 .inv-summary {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 20px 8px;
+  padding: 0 20px 10px;
 }
 
-.inv-total { font-size: 13px; color: #555; font-weight: 500; }
+.inv-total {
+  font-size: 13px;
+  color: #555;
+  font-weight: 500;
+}
 
 .inv-low-badge {
   background: #ffebee;
   color: #e53935;
   font-size: 12px;
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 20px;
 }
 
+/* ── Card ───────────────────────── */
 .inv-card {
-  margin-bottom: 10px;
-  padding: 14px 16px;
+  margin-bottom: 12px;
+  padding: 16px;
   border-radius: 16px;
+  background: #ffffff;
   border-left: 4px solid transparent;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  transition: 0.2s ease;
 }
 
-.inv-ok { background: #fff; border-left-color: #2563eb; }
-.inv-low { background: #fff9f9; border-left-color: #e53935; }
+.inv-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
 
+.inv-ok {
+  border-left-color: #2563eb;
+}
+
+.inv-low {
+  background: #fff9f9;
+  border-left-color: #e53935;
+}
+
+/* ── Top Section ───────────────────────── */
 .inv-card-top {
   display: flex;
   align-items: flex-start;
@@ -33,14 +54,25 @@
   margin-bottom: 10px;
 }
 
-.inv-name { font-size: 15px; font-weight: 700; color: #222; margin: 0 0 3px; }
-.inv-sub { font-size: 12.5px; color: #888; margin: 0; }
+.inv-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 4px;
+}
 
+.inv-sub {
+  font-size: 12.5px;
+  color: #777;
+  margin: 0;
+}
+
+/* ── Stats ───────────────────────── */
 .inv-stats {
   display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
-  padding-top: 4px;
+  justify-content: space-between;
+  margin: 12px 0;
+  padding-top: 10px;
   border-top: 1px solid #f0f0f0;
 }
 
@@ -48,12 +80,56 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 1;
 }
 
-.inv-stat-val { font-size: 17px; font-weight: 800; color: #222; }
-.inv-stat-lbl { font-size: 10.5px; color: #999; margin-top: 1px; }
+.inv-stat-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+}
 
+.inv-stat-lbl {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* ── Actions ───────────────────────── */
 .inv-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Buttons */
+.inv-actions button {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+/* Edit */
+.inv-actions .edit-btn {
+  background: #e8f0ff;
+  color: #2563eb;
+}
+
+.inv-actions .edit-btn:hover {
+  background: #dbe7ff;
+}
+
+/* Delete */
+.inv-actions .delete-btn {
+  background: #ffecec;
+  color: #e53935;
+}
+
+.inv-actions .delete-btn:hover {
+  background: #ffdada;
 }
