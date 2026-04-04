@@ -19,8 +19,9 @@ export default function SellLoad() {
 
   // Step 2: Items
   const [items, setItems] = useState([
-    { itemId: '', boxes: '', pieces: '', dealerPrice: '', mrpPrice: '' },
-  ]);
+  { itemId: '', boxes: '', pieces: '', dealerPrice: '', mrpPrice: '', totalPrice: '' },
+]);
+  
 
   // Step 3: Payment
   const [amountPaid, setAmountPaid] = useState('');
@@ -37,8 +38,8 @@ export default function SellLoad() {
 
   // Simpler: total = boxes * dealerPrice  (per box)
   const grandTotal = items.reduce((sum, it) => {
-    return sum + (Number(it.boxes || 0) * Number(it.dealerPrice || 0));
-  }, 0);
+  return sum + Number(it.totalPrice || 0);
+}, 0);
 
   const balance = Math.max(0, grandTotal - Number(amountPaid || 0));
 
@@ -65,7 +66,7 @@ export default function SellLoad() {
       items.forEach((it, i) => {
         if (!it.itemId) e[`item_${i}`] = 'Select item';
         if (!it.boxes && !it.pieces) e[`qty_${i}`] = 'Enter boxes or pieces';
-        if (!it.dealerPrice) e[`price_${i}`] = 'Dealer price required';
+        if (!it.totalPrice) e[`price_${i}`] = 'Total price required';
       });
     }
     setErrors(e);
@@ -98,7 +99,11 @@ export default function SellLoad() {
     setErrors((p) => { const n = { ...p }; delete n[`item_${i}`]; delete n[`qty_${i}`]; delete n[`price_${i}`]; return n; });
   };
 
-  const addItemRow = () => setItems((p) => [...p, { itemId: '', boxes: '', pieces: '', dealerPrice: '', mrpPrice: '' }]);
+  const addItemRow = () =>
+  setItems((p) => [
+    ...p,
+    { itemId: '', boxes: '', pieces: '', dealerPrice: '', mrpPrice: '', totalPrice: '' }
+  ]);
   const removeItemRow = (i) => setItems((p) => p.filter((_, idx) => idx !== i));
 
   // ── Save ─────────────────────────────────────────────────────
@@ -133,6 +138,7 @@ export default function SellLoad() {
         pieces: Number(it.pieces || 0),
         dealerPrice: Number(it.dealerPrice),
         mrpPrice: Number(it.mrpPrice || 0),
+        totalPrice: Number(it.totalPrice || 0),
       })),
       total: grandTotal,
       amountPaid: Number(amountPaid || 0),
@@ -142,6 +148,7 @@ export default function SellLoad() {
 
     navigate('/selling-loads');
   };
+  
 
   // ── Render ───────────────────────────────────────────────────
   const retailer = getRetailer();
@@ -268,6 +275,20 @@ export default function SellLoad() {
                     <input className="field-input" type="number" min="0" placeholder="0" value={it.pieces} onChange={(e) => updateItem(i, 'pieces', e.target.value)} />
                   </div>
                 </div>
+                <div className="field-group">
+  <label className="field-label">Total Price *</label>
+  <input
+    className={`field-input ${errors[`price_${i}`] ? 'error' : ''}`}
+    type="number"
+    min="0"
+    placeholder="₹0"
+    value={it.totalPrice}
+    onChange={(e) => updateItem(i, 'totalPrice', e.target.value)}
+  />
+  {errors[`price_${i}`] && (
+    <span className="field-error">{errors[`price_${i}`]}</span>
+  )}
+</div>
 
                 <div className="field-row">
                   <div className="field-group flex-1">
@@ -281,11 +302,7 @@ export default function SellLoad() {
                   </div>
                 </div>
 
-                {it.boxes && it.dealerPrice && (
-                  <div className="item-subtotal">
-                    Subtotal: ₹{(Number(it.boxes) * Number(it.dealerPrice)).toLocaleString()}
-                  </div>
-                )}
+                
               </div>
             ))}
 
@@ -350,7 +367,7 @@ export default function SellLoad() {
                   <div key={i} className="preview-item-row">
                     <span>{inv?.name || '—'}</span>
                     <span>{it.boxes} boxes</span>
-                    <span>₹{(Number(it.boxes || 0) * Number(it.dealerPrice || 0)).toLocaleString()}</span>
+                    <span>₹{Number(it.totalPrice || 0).toLocaleString()}</span>
                   </div>
                 );
               })}
