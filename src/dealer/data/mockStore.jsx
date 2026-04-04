@@ -75,6 +75,7 @@ export function StoreProvider({ children }) {
     setUser(null);
     localStorage.clear(); // 🔥 RESET APP FOR NEW USER
   };
+  
 
   // ── INVENTORY ──────────────────────────────────────
   const addInventoryItem = (item) => {

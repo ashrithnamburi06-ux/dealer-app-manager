@@ -73,10 +73,14 @@ export default function AddLoad() {
 
         <div className="field-row">
           <div className="field-group flex-1">
-            <label className="field-label">Grams</label>
-            <select className="field-input" value={form.grams} onChange={handleChange('grams')}>
-              {GRAMS_OPTIONS.map((g) => <option key={g}>{g}</option>)}
-            </select>
+            <label className="field-label">Units</label>
+            <input
+  className="field-input"
+  type="number"
+  placeholder="Enter grams (e.g. 100)"
+  value={form.grams}
+  onChange={handleChange('grams')}
+/>
           </div>
           <div className="field-group flex-1">
             <label className="field-label">Boxes *</label>
