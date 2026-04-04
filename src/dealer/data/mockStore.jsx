@@ -71,11 +71,12 @@ export function StoreProvider({ children }) {
 
   // ── AUTH ───────────────────────────────────────────
   const login = (userData) => setUser(userData);
+
+  // ✅ FIXED (no clear)
   const logout = () => {
     setUser(null);
-    localStorage.clear(); // 🔥 RESET APP FOR NEW USER
+    localStorage.removeItem("user");
   };
-  
 
   // ── INVENTORY ──────────────────────────────────────
   const addInventoryItem = (item) => {
@@ -193,59 +194,21 @@ export function StoreProvider({ children }) {
     );
   };
 
-  // ── PAYMENT ────────────────────────────────────────
-  const recordPayment = (retailerId, amount, date) => {
-    setRetailers((prev) =>
-      prev.map((r) =>
-        r.id === retailerId
-          ? { ...r, pendingAmount: Math.max(0, r.pendingAmount - Number(amount)) }
-          : r
-      )
-    );
-
-    setTransactions((prev) => [
-      {
-        id: Date.now(),
-        retailerId,
-        type: "payment",
-        amount: Number(amount),
-        date,
-        image: null,
-      },
-      ...prev,
-    ]);
-  };
-
-  // ── BILL ───────────────────────────────────────────
-  const addBill = (retailerId, amount, date, image) => {
-    setTransactions((prev) => [
-      {
-        id: Date.now(),
-        retailerId,
-        type: "bill",
-        amount: Number(amount),
-        date,
-        image,
-      },
-      ...prev,
-    ]);
-  };
-
   // ── EXPENSE ────────────────────────────────────────
   const addExpense = (expense) => {
     setExpenses((prev) => [...prev, { ...expense, id: Date.now() }]);
   };
-  // 📁 src/data/mockStore.js
 
-const addTransaction = (tx) => {
-  setTransactions((prev) => [
-    {
-      id: Date.now(),
-      ...tx
-    },
-    ...prev
-  ]);
-};
+  // ✅ TRANSACTION FUNCTION (CLEAN FIX)
+  const addTransaction = (tx) => {
+    setTransactions((prev) => [
+      {
+        id: Date.now() + Math.random(),
+        ...tx
+      },
+      ...prev
+    ]);
+  };
 
   // ── DASHBOARD ──────────────────────────────────────
   const getDashboardStats = () => {
@@ -260,9 +223,9 @@ const addTransaction = (tx) => {
 
     return { totalItems, lowStock, totalPending, monthlyExpenses };
   };
-    
+
   const value = {
-    user, login, logout,addTransaction,
+    user, login, logout, addTransaction,
 
     inventory, addInventoryItem, updateInventoryItem, deleteInventoryItem,
     loads, addLoad,
@@ -270,7 +233,7 @@ const addTransaction = (tx) => {
 
     retailers, addRetailer, updateRetailer,
 
-    transactions, recordPayment, addBill,
+    transactions,
 
     expenses, addExpense,
     getDashboardStats,
@@ -279,10 +242,8 @@ const addTransaction = (tx) => {
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 
-
 export function useStore() {
   const ctx = useContext(StoreContext);
   if (!ctx) throw new Error('useStore must be used inside StoreProvider');
   return ctx;
 }
-

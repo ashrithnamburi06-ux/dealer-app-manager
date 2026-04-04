@@ -6,17 +6,20 @@ import './Dashboard.css';
 export default function Dashboard() {
   const { getDashboardStats, user } = useStore();
   const navigate = useNavigate();
-const statsData = getDashboardStats();
 
-const totalItems = statsData.totalItems;
-const lowStock = statsData.lowStock;
-const totalPending = statsData.totalPending;
-const monthlyExpenses = statsData.monthlyExpenses;
+  // ✅ SAFE CALL
+  const statsData = getDashboardStats() || {};
+
+  const totalItems = statsData.totalItems || 0;
+  const lowStock = statsData.lowStock || [];
+  const totalPending = statsData.totalPending || 0;
+  const monthlyExpenses = statsData.monthlyExpenses || 0;
+
   const stats = [
     { label: 'Total Items', value: totalItems, icon: '📦', color: 'green', action: () => navigate('/inventory') },
     { label: 'Low Stock', value: lowStock.length, icon: '⚠️', color: lowStock.length > 0 ? 'red' : 'green', action: () => navigate('/inventory') },
-    { label: 'Monthly Expenses', value: `₹${monthlyExpenses.toLocaleString()}`, icon: '💸', color: 'orange', action: () => navigate('/expenses') },
-    { label: 'Pending Payments', value: `₹${totalPending.toLocaleString()}`, icon: '💳', color: totalPending > 0 ? 'red' : 'green', action: () => navigate('/retailers') },
+    { label: 'Monthly Expenses', value: `₹${Number(monthlyExpenses).toLocaleString()}`, icon: '💸', color: 'orange', action: () => navigate('/expenses') },
+    { label: 'Pending Payments', value: `₹${Number(totalPending).toLocaleString()}`, icon: '💳', color: totalPending > 0 ? 'red' : 'green', action: () => navigate('/retailers') },
   ];
 
   return (
@@ -64,52 +67,37 @@ const monthlyExpenses = statsData.monthlyExpenses;
       <div className="quick-actions">
         <h3 className="section-title">Quick Actions</h3>
         <div className="action-row">
-  <button
-    className="action-btn action-green"
-    onClick={() => navigate('/add-load')}
-  >
-    <span>📥</span>
-    <span>Add Load</span>
-  </button>
 
-  <button
-    className="action-btn action-orange"
-    onClick={() => navigate('/add-expense')}
-  >
-    <span>💸</span>
-    <span>Add Expense</span>
-  </button>
+          <button className="action-btn action-green" onClick={() => navigate('/add-load')}>
+            <span>📥</span>
+            <span>Add Load</span>
+          </button>
 
-  <button
-    className="action-btn action-teal"
-    onClick={() => navigate('/sell-load')}
-  >
-    <span>🛒</span>
-    <span>Sell Load</span>
-  </button>
+          <button className="action-btn action-orange" onClick={() => navigate('/add-expense')}>
+            <span>💸</span>
+            <span>Add Expense</span>
+          </button>
 
-  <button
-    className="action-btn action-blue"
-    onClick={() => navigate('/retailers')}
-  >
-    <span>🏪</span>
-    <span>Retailers</span>
-  </button>
+          <button className="action-btn action-teal" onClick={() => navigate('/sell-load')}>
+            <span>🛒</span>
+            <span>Sell Load</span>
+          </button>
 
-  {/* ✅ NEW BUTTON */}
-  <button
-    className="action-btn action-blue"
-    onClick={() => navigate('/transactions')}
-  >
-    <span>📄</span>
-    <span>Transactions</span>
-  </button>
-</div>
+          <button className="action-btn action-blue" onClick={() => navigate('/retailers')}>
+            <span>🏪</span>
+            <span>Retailers</span>
+          </button>
+
+          {/* ✅ Transactions Button */}
+          <button className="action-btn action-blue" onClick={() => navigate('/transactions')}>
+            <span>📄</span>
+            <span>Transactions</span>
+          </button>
+
+        </div>
       </div>
-       
 
       <div className="section-spacer" />
     </div>
   );
 }
-

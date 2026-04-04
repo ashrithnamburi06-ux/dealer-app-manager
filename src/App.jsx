@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { StoreProvider, useStore } from './dealer/data/mockStore';
 import Navbar from './dealer/components/Navbar';
-import InstallButton from './dealer/components/InstallButton'; // ✅ make sure this file exists
+import InstallButton from './dealer/components/InstallButton';
 
 // Auth
 import Login from './dealer/pages/auth/Login';
@@ -43,7 +43,7 @@ function AppLayout({ children }) {
     <div className="app-shell">
       <div className="app-content">{children}</div>
       <Navbar />
-      <InstallButton /> {/* ✅ safe now */}
+      <InstallButton />
     </div>
   );
 }
@@ -61,6 +61,7 @@ function AppRoutes() {
 
   return (
     <Routes>
+
       {/* Public */}
       <Route
         path="/"
@@ -93,7 +94,6 @@ function AppRoutes() {
         <ProtectedRoute><AppLayout><SellLoad /></AppLayout></ProtectedRoute>
       } />
 
-
       <Route path="/retailers" element={
         <ProtectedRoute><AppLayout><RetailerList /></AppLayout></ProtectedRoute>
       } />
@@ -117,10 +117,19 @@ function AppRoutes() {
       <Route path="/profile" element={
         <ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>
       } />
-      <Route path="/transactions" element={<TransactionHistory />} />
+
+      {/* ✅ FIXED TRANSACTIONS ROUTE */}
+      <Route path="/transactions" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <TransactionHistory />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
+
     </Routes>
   );
 }
