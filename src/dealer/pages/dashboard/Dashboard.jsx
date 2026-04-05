@@ -101,3 +101,11 @@ export default function Dashboard() {
     </div>
   );
 }
+const handleRefresh = async () => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      window.location.reload(); // ✅ SAFE (data stays)
+      resolve();
+    }, 600);
+  });
+};
