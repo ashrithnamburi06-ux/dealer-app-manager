@@ -111,7 +111,7 @@ export default function AddLoad() {
 
         <div className="field-row">
           <div className="field-group flex-1">
-            <label className="field-label">Units</label>
+            <label className="field-label">Grams</label>
             <input
               className="field-input"
               type="number"
