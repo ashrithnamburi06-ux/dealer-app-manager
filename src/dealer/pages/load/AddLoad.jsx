@@ -20,6 +20,10 @@ export default function AddLoad() {
     amountPaid: '',
   });
 
+  // ✅ NEW STATES (GST + BILL)
+  const [gst, setGst] = useState("");
+  const [billImage, setBillImage] = useState(null);
+
   const [errors, setErrors] = useState({});
 
   const pendingAmount = Math.max(
@@ -42,7 +46,6 @@ export default function AddLoad() {
     setErrors((p) => ({ ...p, [field]: '' }));
   };
 
-  // ✅ FIXED FUNCTION
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -52,20 +55,24 @@ export default function AddLoad() {
       return;
     }
 
+    // ✅ EXISTING LOAD (UNCHANGED + added gst/image)
     addLoad({
       ...form,
       boxes: Number(form.boxes),
       totalAmount: Number(form.totalAmount),
       amountPaid: Number(form.amountPaid || 0),
       pendingAmount,
+      gst,
+      image: billImage
     });
 
-    // ✅ CORRECT PLACE (INSIDE SUBMIT)
+    // ✅ FIXED TRANSACTION (IMPORTANT)
     addTransaction({
-      type: 'company',
+      type: 'add',
+      gst,
+      image: billImage,
       name: form.supplierName,
       product: form.itemName || '',
-      amount: Number(form.amountPaid || 0),
       date: new Date().toLocaleDateString(),
       time: new Date().toLocaleTimeString(),
     });
@@ -199,17 +206,36 @@ export default function AddLoad() {
           </div>
         </div>
 
-        {Number(form.totalAmount) > 0 && (
-          <div
-            className={`pending-chip ${
-              pendingAmount > 0 ? 'pending-red' : 'pending-green'
-            }`}
-          >
-            {pendingAmount > 0
-              ? `⚠️ Pending: ₹${pendingAmount.toLocaleString()}`
-              : '✅ Fully Paid'}
-          </div>
-        )}
+        {/* ✅ NEW GST + BILL SECTION */}
+        <div className="form-section-title">🧾 GST & Bill</div>
+
+        <div className="field-group">
+          <label className="field-label">GST Number</label>
+          <input
+            className="field-input"
+            placeholder="Enter GST Number"
+            value={gst}
+            onChange={(e) => setGst(e.target.value)}
+          />
+        </div>
+
+        <div className="field-group">
+          <label className="field-label">Upload Bill</label>
+          <input
+            className="field-input"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+
+              const reader = new FileReader();
+              reader.onloadend = () => setBillImage(reader.result);
+              reader.readAsDataURL(file);
+            }}
+          />
+        </div>
 
         <button
           id="add-load-submit"

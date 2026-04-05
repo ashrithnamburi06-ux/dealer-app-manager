@@ -1,13 +1,25 @@
 import { useState } from 'react';
+import { useStore } from "../data/mockStore";
 import './Transactions.css';
 
 export default function Transactions() {
   const [activeTab, setActiveTab] = useState('company');
 
+  // ✅ GET DATA FROM STORE
+  const { transactions } = useStore();
+
+  // ✅ FILTER BASED ON TAB
+  const filteredTransactions = transactions.filter((t) => {
+    if (activeTab === 'company') return t.type === 'add';
+    if (activeTab === 'retailer') return t.retailerId;
+    if (activeTab === 'expenses') return t.type === 'expense';
+    return false;
+  });
+
   return (
     <div className="screen transactions-screen">
 
-      {/* 🔵 Header (fixed like dashboard) */}
+      {/* 🔵 Header */}
       <div className="transactions-header">
         <div className="header-row">
           <span className="header-icon">📄</span>
@@ -15,7 +27,6 @@ export default function Transactions() {
         </div>
       </div>
 
-      {/* 📦 Content Area */}
       <div className="transactions-content">
 
         {/* 🧭 Tabs */}
@@ -47,10 +58,39 @@ export default function Transactions() {
           📥 Export PDF
         </button>
 
-        {/* 📭 Empty State */}
-        <div className="empty-state">
-          <p>No transactions available</p>
-        </div>
+        {/* ✅ TRANSACTIONS LIST */}
+        {filteredTransactions.length === 0 ? (
+          <div className="empty-state">
+            <p>No transactions available</p>
+          </div>
+        ) : (
+          filteredTransactions.map((t) => (
+            <div key={t.id} className="txn-card">
+
+              <div className="txn-row">
+                <div>
+                  <p className="txn-type">
+                    {t.type === 'add' && "📦 Stock Added"}
+                    {t.type === 'expense' && "💸 Expense"}
+                  </p>
+
+                  {/* ✅ GST */}
+                  {t.gst && (
+                    <p className="txn-gst">GST: {t.gst}</p>
+                  )}
+
+                  <p className="txn-date">{t.date}</p>
+                </div>
+              </div>
+
+              {/* ✅ IMAGE */}
+              {t.image && (
+                <img src={t.image} alt="bill" className="txn-image" />
+              )}
+
+            </div>
+          ))
+        )}
 
       </div>
     </div>
