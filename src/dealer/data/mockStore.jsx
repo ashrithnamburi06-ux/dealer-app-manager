@@ -209,6 +209,32 @@ export function StoreProvider({ children }) {
       ...prev
     ]);
   };
+  const recordPayment = (retailerId, amount, date) => {
+  setRetailers((prev) =>
+    prev.map((r) =>
+      r.id === retailerId
+        ? { ...r, pendingAmount: r.pendingAmount - amount }
+        : r
+    )
+  );
+
+  addTransaction({
+    retailerId,
+    type: "payment",
+    amount,
+    date
+  });
+};
+
+const addBill = (retailerId, amount, date, image) => {
+  addTransaction({
+    retailerId,
+    type: "bill",
+    amount,
+    date,
+    image
+  });
+};
 
   // ── DASHBOARD ──────────────────────────────────────
   const getDashboardStats = () => {
@@ -233,7 +259,8 @@ export function StoreProvider({ children }) {
 
     retailers, addRetailer, updateRetailer,
 
-    transactions,
+    transactions,recordPayment,
+    addBill,
 
     expenses, addExpense,
     getDashboardStats,
