@@ -73,6 +73,12 @@ export default function Transactions() {
                     {t.type === 'add' && "📦 Stock Added"}
                     {t.type === 'expense' && "💸 Expense"}
                   </p>
+                  {/* ✅ PRODUCT NAME */}
+{t.product && (
+  <p className="txn-product">
+    Product: <strong>{t.product}</strong>
+  </p>
+)}
 
                   {/* ✅ GST */}
                   {t.gst && (
