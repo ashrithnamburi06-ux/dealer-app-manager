@@ -15,7 +15,7 @@ export default function RetailerDetails() {
   const [paymentDate, setPaymentDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  const [billImage, setBillImage] = useState(null); // ✅ NEW
+  const [billImage, setBillImage] = useState(null);
   const [showPayModal, setShowPayModal] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
@@ -27,22 +27,31 @@ export default function RetailerDetails() {
 
   const myLoads = sellLoads.filter((s) => s.retailerId === Number(id));
 
-  // ✅ UPDATED PAYMENT WITH IMAGE + DATE
+  // ✅ FIXED FUNCTION
   const handlePayment = () => {
     const amt = Number(paymentAmt);
-    if (!amt || amt <= 0) return;
 
-    recordPayment(Number(id), amt, paymentDate);
-
-    // ✅ SAVE BILL IMAGE
-    if (billImage) {
-      addBill(Number(id), amt, paymentDate, billImage);
+    if (!paymentAmt || isNaN(amt) || amt <= 0) {
+      alert("Enter valid amount");
+      return;
     }
 
-    setPaymentAmt('');
-    setBillImage(null);
-    setPaymentDate(new Date().toISOString().split("T")[0]);
-    setShowPayModal(false);
+    try {
+      recordPayment(Number(id), amt, paymentDate);
+
+      if (billImage !== null && billImage !== undefined) {
+        addBill(Number(id), amt, paymentDate, billImage);
+      }
+
+      setPaymentAmt('');
+      setBillImage(null);
+      setPaymentDate(new Date().toISOString().split("T")[0]);
+      setShowPayModal(false);
+
+    } catch (err) {
+      console.error("Payment Error:", err);
+      alert("Error while saving payment");
+    }
   };
 
   const handleEditSave = () => {
@@ -69,14 +78,12 @@ export default function RetailerDetails() {
 
       <div className="list-container">
 
-        {/* Profile */}
         <Card className="retailer-profile-card">
           <div className="profile-avatar">{retailer.shopName[0].toUpperCase()}</div>
           <h3 className="profile-shop">{retailer.shopName}</h3>
           <p className="profile-owner">{retailer.ownerName}</p>
         </Card>
 
-        {/* Pending */}
         <Card className={`pending-card ${retailer.pendingAmount > 0 ? 'pending-card-red' : 'pending-card-green'}`}>
           <div className="pending-row">
             <div>
@@ -91,7 +98,6 @@ export default function RetailerDetails() {
           </div>
         </Card>
 
-        {/* Purchase History (UNCHANGED) */}
         <h3 className="section-title">Purchase History</h3>
         {myLoads.map((load) => (
           <Card key={load.id} className="load-hist-card">
@@ -109,7 +115,6 @@ export default function RetailerDetails() {
 
       </div>
 
-      {/* ✅ TRANSACTION HISTORY (ALIGNED SAME AS PURCHASE) */}
       <h3 className="section-title">Transaction History</h3>
 
       {transactions.filter(t => Number(t.retailerId) === Number(retailer.id)).length === 0 ? (
@@ -136,7 +141,6 @@ export default function RetailerDetails() {
                 </div>
               </div>
 
-              {/* IMAGE */}
               {t.image && (
                 <img
                   src={t.image}
@@ -150,7 +154,6 @@ export default function RetailerDetails() {
           ))
       )}
 
-      {/* IMAGE PREVIEW */}
       {previewImage && (
         <div className="preview-overlay" onClick={() => setPreviewImage(null)}>
           <div className="preview-modal">
@@ -159,7 +162,6 @@ export default function RetailerDetails() {
         </div>
       )}
 
-      {/* PAYMENT MODAL */}
       {showPayModal && (
         <div className="preview-overlay">
           <div className="preview-modal">
@@ -176,7 +178,6 @@ export default function RetailerDetails() {
               <input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
             </div>
 
-            {/* ✅ BILL UPLOAD */}
             <div className="field-group">
               <label>Upload Bill</label>
               <input
