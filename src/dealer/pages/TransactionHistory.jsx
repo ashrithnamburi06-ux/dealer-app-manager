@@ -11,7 +11,7 @@ export default function Transactions() {
   // ✅ FILTER BASED ON TAB
   const filteredTransactions = transactions.filter((t) => {
     if (activeTab === 'company') return t.type === 'add';
-    if (activeTab === 'retailer') return t.retailerId;
+    if (activeTab === 'retailer') return t.type === 'sell';
     if (activeTab === 'expenses') return t.type === 'expense';
     return false;
   });
@@ -71,14 +71,22 @@ export default function Transactions() {
                 <div>
                   <p className="txn-type">
                     {t.type === 'add' && "📦 Stock Added"}
+                    {t.type === 'sell' && "🛒 Sold Load"}
                     {t.type === 'expense' && "💸 Expense"}
                   </p>
                   {/* ✅ PRODUCT NAME */}
 {t.product && (
-  <p className="txn-product">
-    Product: <strong>{t.product}</strong>
-  </p>
+  <p>Product: <strong>{t.product}</strong></p>
 )}
+
+{t.name && (
+  <p>Retailer: <strong>{t.name}</strong></p>
+)}
+
+{t.amount && (
+  <p>Amount: ₹{t.amount}</p>
+)}
+
 
                   {/* ✅ GST */}
                   {t.gst && (

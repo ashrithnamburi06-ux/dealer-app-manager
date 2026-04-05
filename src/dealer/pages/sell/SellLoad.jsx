@@ -148,8 +148,8 @@ export default function SellLoad() {
       balance,
       date: saleDate,
     });
-    addTransaction({
-  type: 'retailer',
+   addTransaction({
+  type: 'sell',   // ✅ IMPORTANT FIX
   name: shopName,
   product: items.map((it) => getItemById(it.itemId)?.name || '').join(', '),
   amount: Number(amountPaid || 0),
