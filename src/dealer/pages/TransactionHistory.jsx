@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStore } from "../data/mockStore";
 import './Transactions.css';
 
+
 export default function Transactions() {
   const [activeTab, setActiveTab] = useState('company');
 
@@ -11,7 +12,7 @@ export default function Transactions() {
   // ✅ FILTER BASED ON TAB
   const filteredTransactions = transactions.filter((t) => {
     if (activeTab === 'company') return t.type === 'add';
-    if (activeTab === 'retailer') return t.type === 'sell';
+    if (activeTab === 'retailer') return t.retailerId;
     if (activeTab === 'expenses') return t.type === 'expense';
     return false;
   });
@@ -110,3 +111,20 @@ export default function Transactions() {
     </div>
   );
 }
+export const subscribeTransactions = (callback) => {
+  try {
+    const ref = getUserCollection("transactions");
+
+    return onSnapshot(ref, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      callback(data);
+    });
+
+  } catch (error) {
+    console.error("Realtime transaction error:", error);
+  }
+};

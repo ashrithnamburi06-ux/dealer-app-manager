@@ -1,25 +1,89 @@
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../../data/mockStore';
+import { useEffect, useState } from 'react';
 import Card from '../../components/Card';
+import {
+  subscribeInventory,
+  subscribeTransactions,
+  subscribeSales,
+  subscribeLoads
+} from "../../../services/firebaseService";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../../firebase";
 import './Dashboard.css';
 
 export default function Dashboard() {
-  const { getDashboardStats, user } = useStore();
   const navigate = useNavigate();
 
-  // ✅ SAFE CALL
-  const statsData = getDashboardStats() || {};
+  const [inventory, setInventory] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [loads, setLoads] = useState([]);
+  const [user, setUser] = useState(null);
 
-  const totalItems = statsData.totalItems || 0;
-  const lowStock = statsData.lowStock || [];
-  const totalPending = statsData.totalPending || 0;
-  const monthlyExpenses = statsData.monthlyExpenses || 0;
+  useEffect(() => {
+    let unsub1 = () => {};
+    let unsub2 = () => {};
+    let unsub3 = () => {};
+    let unsub4 = () => {};
+
+    const unsubAuth = onAuthStateChanged(auth, (u) => {
+      if (!u) {
+        console.log("Waiting for user...");
+        return;
+      }
+
+      console.log("User ready:", u.uid);
+
+      setUser(u);
+
+      unsub1 = subscribeInventory((data) => {
+        setInventory([...data]);
+      });
+
+      unsub2 = subscribeTransactions((data) => {
+        setTransactions([...data]);
+      });
+
+      unsub3 = subscribeSales((data) => {
+        setSales([...data]);
+      });
+
+      unsub4 = subscribeLoads((data) => {
+        setLoads([...data]);
+      });
+    });
+
+    return () => {
+      unsubAuth();
+      unsub1();
+      unsub2();
+      unsub3();
+      unsub4();
+    };
+  }, []);
+
+  // ✅ CALCULATIONS
+  const totalItems = inventory.length;
+
+  const lowStock = inventory.filter(item => {
+    const boxes = item.boxes || item.qty || 0;
+    const minStock = item.minStock || item.min || 0;
+    return boxes <= minStock;
+  });
+
+  const monthlyExpenses = transactions
+    .filter(t => (t.type || t.category) === 'expense')
+    .reduce((sum, t) => sum + Number(t.amount || t.amt || 0), 0);
+
+  const totalPending = transactions
+    .filter(t => (t.type || t.category) === 'sell')
+    .reduce((sum, t) => sum + Number(t.pending || 0), 0);
 
   const stats = [
     { label: 'Total Items', value: totalItems, icon: '📦', color: 'green', action: () => navigate('/inventory') },
     { label: 'Low Stock', value: lowStock.length, icon: '⚠️', color: lowStock.length > 0 ? 'red' : 'green', action: () => navigate('/inventory') },
-    { label: 'Monthly Expenses', value: `₹${Number(monthlyExpenses).toLocaleString()}`, icon: '💸', color: 'orange', action: () => navigate('/expenses') },
-    { label: 'Pending Payments', value: `₹${Number(totalPending).toLocaleString()}`, icon: '💳', color: totalPending > 0 ? 'red' : 'green', action: () => navigate('/retailers') },
+    { label: 'Monthly Expenses', value: `₹${monthlyExpenses.toLocaleString()}`, icon: '💸', color: 'orange', action: () => navigate('/expenses') },
+    { label: 'Pending Payments', value: `₹${totalPending.toLocaleString()}`, icon: '💳', color: totalPending > 0 ? 'red' : 'green', action: () => navigate('/retailers') },
   ];
 
   return (
@@ -27,10 +91,12 @@ export default function Dashboard() {
       <div className="page-header">
         <div>
           <p className="header-greeting">Good day 👋</p>
-          <h2 className="header-title">{user?.name || 'Dealer'}</h2>
-          <p className="header-sub">{user?.agency}</p>
+          <h2 className="header-title">{user?.displayName || 'Dealer'}</h2>
+          <p className="header-sub">{user?.email}</p>
         </div>
-        <div className="header-avatar">{(user?.name || 'D')[0].toUpperCase()}</div>
+        <div className="header-avatar">
+          {(user?.displayName || 'D')[0].toUpperCase()}
+        </div>
       </div>
 
       <div className="stats-grid">
@@ -52,10 +118,14 @@ export default function Dashboard() {
                 <div className="alert-row">
                   <div>
                     <p className="alert-item-name">{item.name}</p>
-                    <p className="alert-item-sub">{item.grams} · Min: {item.minStock} boxes</p>
+                    <p className="alert-item-sub">
+                      {item.grams} · Min: {item.minStock || item.min} boxes
+                    </p>
                   </div>
                   <div className="alert-stock">
-                    <span className="badge badge-red">{item.boxes} left</span>
+                    <span className="badge badge-red">
+                      {item.boxes || item.qty} left
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -88,7 +158,6 @@ export default function Dashboard() {
             <span>Retailers</span>
           </button>
 
-          {/* ✅ Transactions Button */}
           <button className="action-btn action-blue" onClick={() => navigate('/transactions')}>
             <span>📄</span>
             <span>Transactions</span>
@@ -101,11 +170,3 @@ export default function Dashboard() {
     </div>
   );
 }
-const handleRefresh = async () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      window.location.reload(); // ✅ SAFE (data stays)
-      resolve();
-    }, 600);
-  });
-};

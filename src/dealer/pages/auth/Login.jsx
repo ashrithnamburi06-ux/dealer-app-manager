@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../data/mockStore';
 import './Login.css';
+import { auth } from '../../../firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 export default function Login() {
-  const { login } = useStore(); // ✅ use login (not setUser)
+  const { login } = useStore();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -13,7 +15,20 @@ export default function Login() {
     agency: ''
   });
 
+  const [otp, setOtp] = useState('');
+  const [showOtp, setShowOtp] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // ✅ Setup Recaptcha (safe)
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        'recaptcha-container',
+        { size: 'invisible' }
+      );
+    }
+  };
 
   const validate = () => {
     const e = {};
@@ -23,7 +38,8 @@ export default function Login() {
     return e;
   };
 
-  const handleSubmit = (e) => {
+  // ✅ Send OTP
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const errs = validate();
@@ -32,11 +48,45 @@ export default function Login() {
       return;
     }
 
-    // ✅ SAVE LOGIN + PERSIST
-    login({ ...form });
+    try {
+      setupRecaptcha();
 
-    // ✅ REDIRECT TO DASHBOARD
-    navigate('/dashboard');
+      const confirmationResult = await signInWithPhoneNumber(
+        auth,
+        '+91' + form.phone,
+        window.recaptchaVerifier
+      );
+
+      window.confirmationResult = confirmationResult;
+
+      setShowOtp(true);
+      alert('OTP Sent ✅');
+    } catch (err) {
+      console.error(err);
+      alert('Error sending OTP ❌');
+    }
+  };
+
+  // ✅ Verify OTP
+  const verifyOtp = async () => {
+    try {
+      const result = await window.confirmationResult.confirm(otp);
+
+      const user = result.user;
+
+      // Save user with UID
+      login({
+        ...form,
+        uid: user.uid
+      });
+
+      console.log('UID:', user.uid);
+
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
+      alert('Invalid OTP ❌');
+    }
   };
 
   const handleChange = (field) => (e) => {
@@ -99,9 +149,34 @@ export default function Login() {
         <button className="btn-primary login-btn" type="submit">
           Login →
         </button>
+
+        {showOtp && (
+          <>
+            <div className="field-group">
+              <label className="field-label">Enter OTP</label>
+              <input
+                className="field-input"
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+              />
+            </div>
+
+            <button
+              type="button"
+              className="btn-primary login-btn"
+              onClick={verifyOtp}
+            >
+              Verify OTP →
+            </button>
+          </>
+        )}
       </form>
 
       <p className="login-footer">Dealer Distribution Management</p>
+
+      {/* ✅ Required for Firebase */}
+      <div id="recaptcha-container"></div>
     </div>
   );
 }

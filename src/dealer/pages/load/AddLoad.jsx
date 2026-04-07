@@ -1,13 +1,34 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../../data/mockStore';
 import './AddLoad.css';
+import { addLoad, addTransaction, subscribeInventory } from "../../../services/firebaseService";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../../firebase";
+import { useEffect } from "react";
 
 const GRAMS_OPTIONS = ['50g', '100g', '150g', '200g', '250g', '500g', '1kg'];
 
+
 export default function AddLoad() {
-  const { addLoad, inventory, addTransaction } = useStore();
   const navigate = useNavigate();
+  const [inventory, setInventory] = useState([]);
+
+  useEffect(() => {
+    let unsubscribeSnapshot = () => {};
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        unsubscribeSnapshot = subscribeInventory(setInventory);
+      } else {
+        setInventory([]);
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeSnapshot();
+    };
+  }, []);
 
   const [form, setForm] = useState({
     itemName: '',
@@ -20,10 +41,8 @@ export default function AddLoad() {
     amountPaid: '',
   });
 
-  // ✅ NEW STATES (GST + BILL)
   const [gst, setGst] = useState("");
   const [billImage, setBillImage] = useState(null);
-
   const [errors, setErrors] = useState({});
 
   const pendingAmount = Math.max(
@@ -46,7 +65,7 @@ export default function AddLoad() {
     setErrors((p) => ({ ...p, [field]: '' }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const errs = validate();
@@ -55,29 +74,47 @@ export default function AddLoad() {
       return;
     }
 
-    // ✅ EXISTING LOAD (UNCHANGED + added gst/image)
-    addLoad({
-      ...form,
-      boxes: Number(form.boxes),
-      totalAmount: Number(form.totalAmount),
-      amountPaid: Number(form.amountPaid || 0),
-      pendingAmount,
-      gst,
-      image: billImage
-    });
+    try {
+   const selectedItem = inventory.find(
+  (i) => i.name === form.itemName
+) || inventory[0]; // 🔥 fallback to first item
 
-    // ✅ FIXED TRANSACTION (IMPORTANT)
-    addTransaction({
-      type: 'add',
-      gst,
-      image: billImage,
-      name: form.supplierName,
-      product: form.itemName || '',
-      date: new Date().toLocaleDateString(),
-      time: new Date().toLocaleTimeString(),
-    });
+if (!selectedItem) {
+  alert("No items in inventory");
+  return;
+}
 
-    navigate('/dashboard');
+      // ✅ FIRESTORE LOAD
+      await addLoad({
+        itemId: selectedItem.id,
+        itemName: form.itemName,
+        boxesAdded: Number(form.boxes),
+        supplierName: form.supplierName,
+        totalAmount: Number(form.totalAmount),
+        amountPaid: Number(form.amountPaid || 0),
+        pendingAmount,
+        gst,
+        image: billImage,
+      });
+
+      // ✅ FIRESTORE TRANSACTION
+      await addTransaction({
+        type: "add",
+        gst,
+        image: billImage,
+        name: form.supplierName,
+        product: form.itemName,
+        amount: Number(form.totalAmount),
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+      });
+
+      console.log("Load saved to Firebase ✅");
+
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Error saving load:", error);
+    }
   };
 
   return (
@@ -206,7 +243,6 @@ export default function AddLoad() {
           </div>
         </div>
 
-        {/* ✅ NEW GST + BILL SECTION */}
         <div className="form-section-title">🧾 GST & Bill</div>
 
         <div className="field-group">
