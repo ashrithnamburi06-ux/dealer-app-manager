@@ -6,7 +6,7 @@ import './SellLoad.css';
 const STEPS = ['Retailer', 'Items', 'Payment', 'Preview'];
 
 export default function SellLoad() {
-  const { inventory, retailers, addSellLoad, addRetailer ,addTransaction} = useStore();
+  const { inventory, retailers, addSellLoad, addRetailer } = useStore();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
@@ -28,7 +28,7 @@ export default function SellLoad() {
   const [saleDate, setSaleDate] = useState(new Date().toISOString().split('T')[0]);
 
   // ── Computed values ──────────────────────────────────────────
-  const getItemById = (id) => inventory.find((i) => i.id === Number(id));
+  const getItemById = (id) => inventory.find((i) => i.id === String(id));
 
   const itemTotals = items.map((it) => {
     const inv = getItemById(it.itemId);
@@ -44,7 +44,7 @@ export default function SellLoad() {
   const balance = Math.max(0, grandTotal - Number(amountPaid || 0));
 
   const getRetailer = () => {
-    if (retailerMode === 'existing') return retailers.find((r) => r.id === Number(selectedRetailerId));
+    if (retailerMode === 'existing') return retailers.find((r) => r.id === String(selectedRetailerId));
     return newRetailer;
   };
 
@@ -107,57 +107,50 @@ export default function SellLoad() {
   const removeItemRow = (i) => setItems((p) => p.filter((_, idx) => idx !== i));
 
   // ── Save ─────────────────────────────────────────────────────
-  const handleSave = () => {
+  const handleSave = async () => {
     let retailerId;
     let shopName, ownerName, phone;
 
     if (retailerMode === 'existing') {
-      const r = retailers.find((r) => r.id === Number(selectedRetailerId));
+      const r = retailers.find((r) => r.id === String(selectedRetailerId));
       retailerId = r.id;
       shopName = r.shopName;
       ownerName = r.ownerName;
       phone = r.phone;
     } else {
-      const newId = Date.now();
-      addRetailer({ ...newRetailer, id: newId });
-      retailerId = newId;
+      const newId = await addRetailer({ ...newRetailer });
+      retailerId = newId || String(Date.now());
       shopName = newRetailer.shopName;
       ownerName = newRetailer.ownerName;
       phone = newRetailer.phone;
     }
-    // 📁 src/pages/SellLoad.jsx
 
+    try {
+      await addSellLoad({
+        retailerId,
+        shopName,
+        ownerName,
+        phone,
+        items: items.map((it) => ({
+          itemId: String(it.itemId),
+          itemName: getItemById(it.itemId)?.name || '',
+          boxes: Number(it.boxes || 0),
+          pieces: Number(it.pieces || 0),
+          dealerPrice: Number(it.dealerPrice),
+          mrpPrice: Number(it.mrpPrice || 0),
+          totalPrice: Number(it.totalPrice || 0),
+        })),
+        total: grandTotal,
+        amountPaid: Number(amountPaid || 0),
+        balance,
+        date: saleDate,
+      });
 
-
-    addSellLoad({
-      retailerId,
-      shopName,
-      ownerName,
-      phone,
-      items: items.map((it) => ({
-        itemId: Number(it.itemId),
-        itemName: getItemById(it.itemId)?.name || '',
-        boxes: Number(it.boxes || 0),
-        pieces: Number(it.pieces || 0),
-        dealerPrice: Number(it.dealerPrice),
-        mrpPrice: Number(it.mrpPrice || 0),
-        totalPrice: Number(it.totalPrice || 0),
-      })),
-      total: grandTotal,
-      amountPaid: Number(amountPaid || 0),
-      balance,
-      date: saleDate,
-    });
-   addTransaction({
-  type: 'sell',   // ✅ IMPORTANT FIX
-  name: shopName,
-  product: items.map((it) => getItemById(it.itemId)?.name || '').join(', '),
-  amount: Number(amountPaid || 0),
-  date: new Date().toLocaleDateString(),
-  time: new Date().toLocaleTimeString()
-});
-
-    navigate('/selling-loads');
+      console.log("Sale saved to Firebase ✅");
+      navigate('/selling-loads');
+    } catch (error) {
+      console.error("Error saving sale:", error);
+    }
   };
   
 
@@ -212,7 +205,7 @@ export default function SellLoad() {
                 </select>
                 {errors.retailer && <span className="field-error">{errors.retailer}</span>}
                 {selectedRetailerId && (() => {
-                  const r = retailers.find((x) => x.id === Number(selectedRetailerId));
+                  const r = retailers.find((x) => x.id === String(selectedRetailerId));
                   return r ? (
                     <div className="retailer-preview-chip">
                       <p>🏪 {r.shopName}</p>
@@ -366,8 +359,8 @@ export default function SellLoad() {
 
             <div className="preview-section">
               <p className="preview-sub">Retailer</p>
-              <p><strong>{retailerMode === 'existing' ? retailers.find(r => r.id === Number(selectedRetailerId))?.shopName : newRetailer.shopName}</strong></p>
-              <p className="preview-detail">{retailerMode === 'existing' ? retailers.find(r => r.id === Number(selectedRetailerId))?.ownerName : newRetailer.ownerName}</p>
+              <p><strong>{retailerMode === 'existing' ? retailers.find(r => r.id === String(selectedRetailerId))?.shopName : newRetailer.shopName}</strong></p>
+              <p className="preview-detail">{retailerMode === 'existing' ? retailers.find(r => r.id === String(selectedRetailerId))?.ownerName : newRetailer.ownerName}</p>
             </div>
 
             <div className="preview-section">

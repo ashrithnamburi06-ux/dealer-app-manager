@@ -123,8 +123,11 @@ export default function InventoryList() {
 
                 <button
                   className="btn-danger btn-sm"
-                  onClick={() => {
-                    alert("Delete will be added with Firestore next");
+                  onClick={async () => {
+                    if (window.confirm('Delete this item?')) {
+                      const { deleteInventoryItem } = await import("../../../services/firebaseService");
+                      await deleteInventoryItem(item.id);
+                    }
                   }}
                 >
                   🗑 Delete

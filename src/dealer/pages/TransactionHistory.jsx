@@ -1,26 +1,98 @@
-import { useState } from 'react';
-import { useStore } from "../data/mockStore";
+import { useState, useEffect } from 'react';
+import { subscribeTransactions } from "../../services/firebaseService";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../firebase";
 import './Transactions.css';
-
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function Transactions() {
   const [activeTab, setActiveTab] = useState('company');
+  const [transactions, setTransactions] = useState([]);
 
-  // ✅ GET DATA FROM STORE
-  const { transactions } = useStore();
+  useEffect(() => {
+    let unsubSnapshot = () => {};
 
-  // ✅ FILTER BASED ON TAB
-  const filteredTransactions = transactions.filter((t) => {
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        unsubSnapshot = subscribeTransactions((data) => {
+          setTransactions(Array.isArray(data) ? data : []);
+        });
+      } else {
+        setTransactions([]);
+      }
+    });
+
+    return () => {
+      unsubAuth();
+      unsubSnapshot();
+    };
+  }, []);
+
+  // ✅ FILTER
+  const filteredTransactions = (transactions || []).filter((t) => {
     if (activeTab === 'company') return t.type === 'add';
     if (activeTab === 'retailer') return t.retailerId;
     if (activeTab === 'expenses') return t.type === 'expense';
     return false;
   });
 
+  // ✅ PDF EXPORT
+ 
+
+const handleExportPDF = () => {
+  try {
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(18);
+    doc.text("Transaction Report", 14, 20);
+
+    // Table Data
+    const tableData = filteredTransactions.map((t) => [
+      t.type || "",
+      t.name || "",
+      t.product || "",
+      `₹${t.amount || 0}`,
+      t.date || ""
+    ]);
+
+    // Table
+    autoTable(doc, {
+      startY: 30,
+      head: [["Type", "Name", "Product", "Amount", "Date"]],
+      body: tableData,
+      styles: {
+        fontSize: 10
+      },
+      headStyles: {
+        fillColor: [41, 128, 185] // blue header
+      }
+    });
+
+    // 🔥 TOTAL CALCULATION
+    const total = filteredTransactions.reduce(
+      (sum, t) => sum + Number(t.amount || 0),
+      0
+    );
+
+    const finalY = doc.lastAutoTable.finalY || 40;
+
+    doc.setFontSize(12);
+    doc.text(`Total Amount: ₹${total}`, 14, finalY + 10);
+
+    // Save
+    doc.save("transactions-report.pdf");
+
+  } catch (err) {
+    console.error("PDF error:", err);
+  }
+};
+
   return (
     <div className="screen transactions-screen">
 
-      {/* 🔵 Header */}
+      {/* Header */}
       <div className="transactions-header">
         <div className="header-row">
           <span className="header-icon">📄</span>
@@ -30,7 +102,7 @@ export default function Transactions() {
 
       <div className="transactions-content">
 
-        {/* 🧭 Tabs */}
+        {/* Tabs */}
         <div className="tabs">
           <button
             className={`tab ${activeTab === 'company' ? 'active' : ''}`}
@@ -54,12 +126,12 @@ export default function Transactions() {
           </button>
         </div>
 
-        {/* 📥 Export Button */}
-        <button className="export-btn">
+        {/* Export Button */}
+        <button className="export-btn" onClick={handleExportPDF}>
           📥 Export PDF
         </button>
 
-        {/* ✅ TRANSACTIONS LIST */}
+        {/* Transactions */}
         {filteredTransactions.length === 0 ? (
           <div className="empty-state">
             <p>No transactions available</p>
@@ -74,22 +146,22 @@ export default function Transactions() {
                     {t.type === 'add' && "📦 Stock Added"}
                     {t.type === 'sell' && "🛒 Sold Load"}
                     {t.type === 'expense' && "💸 Expense"}
+                    {t.type === 'payment' && "💳 Payment"}
+                    {t.type === 'bill' && "🧾 Bill"}
                   </p>
-                  {/* ✅ PRODUCT NAME */}
-{t.product && (
-  <p>Product: <strong>{t.product}</strong></p>
-)}
 
-{t.name && (
-  <p>Retailer: <strong>{t.name}</strong></p>
-)}
+                  {t.product && (
+                    <p>Product: <strong>{t.product}</strong></p>
+                  )}
 
-{t.amount && (
-  <p>Amount: ₹{t.amount}</p>
-)}
+                  {t.name && (
+                    <p>Retailer: <strong>{t.name}</strong></p>
+                  )}
 
+                  {t.amount && (
+                    <p>Amount: ₹{t.amount}</p>
+                  )}
 
-                  {/* ✅ GST */}
                   {t.gst && (
                     <p className="txn-gst">GST: {t.gst}</p>
                   )}
@@ -98,7 +170,6 @@ export default function Transactions() {
                 </div>
               </div>
 
-              {/* ✅ IMAGE */}
               {t.image && (
                 <img src={t.image} alt="bill" className="txn-image" />
               )}
@@ -111,20 +182,3 @@ export default function Transactions() {
     </div>
   );
 }
-export const subscribeTransactions = (callback) => {
-  try {
-    const ref = getUserCollection("transactions");
-
-    return onSnapshot(ref, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      callback(data);
-    });
-
-  } catch (error) {
-    console.error("Realtime transaction error:", error);
-  }
-};

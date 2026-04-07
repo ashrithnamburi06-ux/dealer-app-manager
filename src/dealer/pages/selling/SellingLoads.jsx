@@ -9,7 +9,7 @@ export default function SellingLoads() {
 
   const sorted = [...sellLoads].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  const totalBalance = sellLoads.reduce((s, l) => s + l.balance, 0);
+  const totalBalance = sellLoads.reduce((s, l) => s + (Number(l.balance) || 0), 0);
 
   return (
     <div className="screen">

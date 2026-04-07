@@ -9,7 +9,7 @@ export default function RetailerDetails() {
   const { retailers, sellLoads, recordPayment, updateRetailer, transactions, addBill } = useStore();
   const navigate = useNavigate();
 
-  const retailer = retailers.find((r) => r.id === Number(id));
+  const retailer = retailers.find((r) => r.id === id);
 
   const [paymentAmt, setPaymentAmt] = useState('');
   const [paymentDate, setPaymentDate] = useState(
@@ -25,10 +25,10 @@ export default function RetailerDetails() {
     return <div className="screen"><div className="empty-state"><p>Retailer not found.</p></div></div>;
   }
 
-  const myLoads = sellLoads.filter((s) => s.retailerId === Number(id));
+  const myLoads = sellLoads.filter((s) => s.retailerId === id);
 
   // ✅ FIXED FUNCTION
-  const handlePayment = () => {
+  const handlePayment = async () => {
     const amt = Number(paymentAmt);
 
     if (!paymentAmt || isNaN(amt) || amt <= 0) {
@@ -37,10 +37,10 @@ export default function RetailerDetails() {
     }
 
     try {
-      recordPayment(Number(id), amt, paymentDate);
+      await recordPayment(id, amt, paymentDate);
 
       if (billImage !== null && billImage !== undefined) {
-        addBill(Number(id), amt, paymentDate, billImage);
+        await addBill(id, amt, paymentDate, billImage);
       }
 
       setPaymentAmt('');
@@ -54,9 +54,13 @@ export default function RetailerDetails() {
     }
   };
 
-  const handleEditSave = () => {
-    updateRetailer(Number(id), editForm);
-    setEditing(false);
+  const handleEditSave = async () => {
+    try {
+      await updateRetailer(id, editForm);
+      setEditing(false);
+    } catch (err) {
+      console.error("Edit retailer error:", err);
+    }
   };
 
   return (
@@ -117,11 +121,11 @@ export default function RetailerDetails() {
 
       <h3 className="section-title">Transaction History</h3>
 
-      {transactions.filter(t => Number(t.retailerId) === Number(retailer.id)).length === 0 ? (
+      {transactions.filter(t => String(t.retailerId) === String(retailer.id)).length === 0 ? (
         <p>No transactions yet.</p>
       ) : (
         transactions
-          .filter(t => Number(t.retailerId) === Number(retailer.id))
+          .filter(t => String(t.retailerId) === String(retailer.id))
           .sort((a, b) => new Date(b.date) - new Date(a.date))
           .map((t) => (
             <Card key={t.id} className="load-hist-card">

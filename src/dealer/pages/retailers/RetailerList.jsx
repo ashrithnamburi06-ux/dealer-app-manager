@@ -15,7 +15,7 @@ export default function RetailerList() {
       r.ownerName.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalPending = retailers.reduce((s, r) => s + r.pendingAmount, 0);
+  const totalPending = retailers.reduce((s, r) => s + (Number(r.pendingAmount) || 0), 0);
 
   return (
     <div className="screen">

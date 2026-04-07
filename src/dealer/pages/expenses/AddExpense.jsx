@@ -21,12 +21,17 @@ export default function AddExpense() {
     return e;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    addExpense({ ...form, amount: Number(form.amount) });
-    navigate('/expenses');
+    try {
+      await addExpense({ ...form, amount: Number(form.amount) });
+      console.log("Expense saved to Firebase ✅");
+      navigate('/expenses');
+    } catch (error) {
+      console.error("Error saving expense:", error);
+    }
   };
 
   const handleChange = (field) => (e) => {

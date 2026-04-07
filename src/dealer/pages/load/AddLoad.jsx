@@ -75,20 +75,25 @@ export default function AddLoad() {
     }
 
     try {
-   const selectedItem = inventory.find(
-  (i) => i.name === form.itemName
-) || inventory[0]; // 🔥 fallback to first item
+   
 
-if (!selectedItem) {
-  alert("No items in inventory");
-  return;
-}
+const selectedItem = inventory.find(
+  (i) =>
+    i.name?.trim().toLowerCase() === form.itemName.trim().toLowerCase()
+    && String(i.grams) === String(form.grams)
+);
+
+// ✅ Allow new items
+const itemId = selectedItem?.id || null;// 🔥 fallback to first item
+
+
 
       // ✅ FIRESTORE LOAD
       await addLoad({
-        itemId: selectedItem.id,
+        itemId: itemId,
         itemName: form.itemName,
-        boxesAdded: Number(form.boxes),
+        boxes: Number(form.boxes),
+         grams: form.grams,
         supplierName: form.supplierName,
         totalAmount: Number(form.totalAmount),
         amountPaid: Number(form.amountPaid || 0),

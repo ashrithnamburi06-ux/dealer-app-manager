@@ -4,15 +4,15 @@ import Card from '../../components/Card';
 import './Profile.css';
 
 export default function Profile() {
-  const { user, setUser, getDashboardStats, inventory, retailers, sellLoads, expenses } = useStore();
+  const { user, logout, getDashboardStats, inventory, retailers, sellLoads, expenses } = useStore();
   const navigate = useNavigate();
 
   const { totalItems, monthlyExpenses, totalPending } = getDashboardStats();
-  const totalSales = sellLoads.reduce((s, l) => s + l.total, 0);
+  const totalSales = sellLoads.reduce((s, l) => s + (Number(l.total) || 0), 0);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (window.confirm('Logout from Dealer App?')) {
-      setUser(null);
+      await logout();
       navigate('/');
     }
   };

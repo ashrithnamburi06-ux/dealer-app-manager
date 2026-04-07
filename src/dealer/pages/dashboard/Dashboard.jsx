@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Card from '../../components/Card';
+import { subscribeRetailers } from "../../../services/firebaseService";
 import {
   subscribeInventory,
   subscribeTransactions,
@@ -19,38 +20,49 @@ export default function Dashboard() {
   const [sales, setSales] = useState([]);
   const [loads, setLoads] = useState([]);
   const [user, setUser] = useState(null);
+  const [retailers, setRetailers] = useState([]);
 
   useEffect(() => {
     let unsub1 = () => {};
     let unsub2 = () => {};
     let unsub3 = () => {};
     let unsub4 = () => {};
+    let unsub5 = () => {};
 
     const unsubAuth = onAuthStateChanged(auth, (u) => {
       if (!u) {
         console.log("Waiting for user...");
+        setInventory([]);
+        setTransactions([]);
+        setSales([]);
+        setLoads([]);
+        setRetailers([]); 
         return;
       }
 
       console.log("User ready:", u.uid);
-
       setUser(u);
 
+      // ✅ SAFE REALTIME SUBSCRIPTIONS
       unsub1 = subscribeInventory((data) => {
-        setInventory([...data]);
+        console.log("Inventory:", data);
+        setInventory(data || []);
       });
 
       unsub2 = subscribeTransactions((data) => {
-        setTransactions([...data]);
+        console.log("Transactions:", data);
+        setTransactions(data || []);
       });
 
       unsub3 = subscribeSales((data) => {
-        setSales([...data]);
+        setSales(data || []);
       });
 
       unsub4 = subscribeLoads((data) => {
-        setLoads([...data]);
+        setLoads(data || []);
       });
+          unsub5 = subscribeRetailers((data) => setRetailers(data || [])); // ✅ FIX
+
     });
 
     return () => {
@@ -59,31 +71,56 @@ export default function Dashboard() {
       unsub2();
       unsub3();
       unsub4();
+      unsub5();
     };
   }, []);
 
-  // ✅ CALCULATIONS
-  const totalItems = inventory.length;
+  // ✅ SAFE CALCULATIONS
+  const totalItems = inventory?.length || 0;
 
-  const lowStock = inventory.filter(item => {
-    const boxes = item.boxes || item.qty || 0;
-    const minStock = item.minStock || item.min || 0;
+  const lowStock = (inventory || []).filter(item => {
+    const boxes = Number(item?.boxes || item?.qty || 0);
+    const minStock = Number(item?.minStock || item?.min || 0);
     return boxes <= minStock;
   });
 
-  const monthlyExpenses = transactions
-    .filter(t => (t.type || t.category) === 'expense')
-    .reduce((sum, t) => sum + Number(t.amount || t.amt || 0), 0);
+  const monthlyExpenses = (transactions || [])
+    .filter(t => (t?.type || t?.category) === 'expense')
+    .reduce((sum, t) => sum + Number(t?.amount || t?.amt || 0), 0);
 
-  const totalPending = transactions
-    .filter(t => (t.type || t.category) === 'sell')
-    .reduce((sum, t) => sum + Number(t.pending || 0), 0);
+ const totalPending = (retailers || [])
+  .reduce((sum, r) => sum + Number(r.pendingAmount || 0), 0);
+  
 
   const stats = [
-    { label: 'Total Items', value: totalItems, icon: '📦', color: 'green', action: () => navigate('/inventory') },
-    { label: 'Low Stock', value: lowStock.length, icon: '⚠️', color: lowStock.length > 0 ? 'red' : 'green', action: () => navigate('/inventory') },
-    { label: 'Monthly Expenses', value: `₹${monthlyExpenses.toLocaleString()}`, icon: '💸', color: 'orange', action: () => navigate('/expenses') },
-    { label: 'Pending Payments', value: `₹${totalPending.toLocaleString()}`, icon: '💳', color: totalPending > 0 ? 'red' : 'green', action: () => navigate('/retailers') },
+    {
+      label: 'Total Items',
+      value: totalItems,
+      icon: '📦',
+      color: 'green',
+      action: () => navigate('/inventory')
+    },
+    {
+      label: 'Low Stock',
+      value: lowStock.length,
+      icon: '⚠️',
+      color: lowStock.length > 0 ? 'red' : 'green',
+      action: () => navigate('/inventory')
+    },
+    {
+      label: 'Monthly Expenses',
+      value: `₹${monthlyExpenses.toLocaleString()}`,
+      icon: '💸',
+      color: 'orange',
+      action: () => navigate('/expenses')
+    },
+    {
+      label: 'Pending Payments',
+      value: `₹${totalPending.toLocaleString()}`,
+      icon: '💳',
+      color: totalPending > 0 ? 'red' : 'green',
+      action: () => navigate('/retailers')
+    },
   ];
 
   return (
@@ -124,7 +161,7 @@ export default function Dashboard() {
                   </div>
                   <div className="alert-stock">
                     <span className="badge badge-red">
-                      {item.boxes || item.qty} left
+                      {item.boxes || item.qty || 0} left
                     </span>
                   </div>
                 </div>
