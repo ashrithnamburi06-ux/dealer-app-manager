@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../data/mockStore';
 import Card from '../../components/Card';
+import { signOut } from "firebase/auth";
+import { auth } from "../../../firebase";
 import './Profile.css';
 
 export default function Profile() {
-  const { user, logout, getDashboardStats, inventory, retailers, sellLoads, expenses } = useStore();
+  const { user, getDashboardStats, inventory, retailers, sellLoads, expenses } = useStore();
   const navigate = useNavigate();
 
   const { totalItems, monthlyExpenses, totalPending } = getDashboardStats();
@@ -12,8 +14,12 @@ export default function Profile() {
 
   const handleLogout = async () => {
     if (window.confirm('Logout from Dealer App?')) {
-      await logout();
-      navigate('/');
+      try {
+        await signOut(auth); // ✅ Firebase logout
+        navigate('/login'); // ✅ redirect
+      } catch (err) {
+        console.error("Logout error:", err);
+      }
     }
   };
 
@@ -74,7 +80,13 @@ export default function Profile() {
           </Card>
         ))}
 
-        <button id="logout-btn" className="btn-danger btn-block" style={{ marginTop: 20 }} onClick={handleLogout}>
+        {/* ✅ WORKING LOGOUT BUTTON */}
+        <button
+          id="logout-btn"
+          className="btn-danger btn-block"
+          style={{ marginTop: 20 }}
+          onClick={handleLogout}
+        >
           🚪 Logout
         </button>
       </div>
