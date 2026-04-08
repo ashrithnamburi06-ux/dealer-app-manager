@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { StoreProvider, useStore } from './dealer/data/mockStore';
 import Navbar from './dealer/components/Navbar';
 import InstallButton from './dealer/components/InstallButton';
+import SplashScreen from "./dealer/components/SplashScreen";
+import { useState } from "react";
 
 // Auth
 import Login from './dealer/pages/auth/Login';
@@ -136,6 +138,14 @@ function AppRoutes() {
 
 // ── Root App ─────────────────────────────────
 export default function App() {
+
+  const [loading, setLoading] = useState(true);
+
+  // 🔹 Show splash first
+  if (loading) {
+    return <SplashScreen onFinish={() => setLoading(false)} />;
+  }
+
   return (
     <StoreProvider>
       <BrowserRouter>
@@ -144,3 +154,4 @@ export default function App() {
     </StoreProvider>
   );
 }
+

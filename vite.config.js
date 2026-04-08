@@ -11,8 +11,8 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'robots.txt'],
 
       manifest: {
-        name: 'Grocery Dealer App',
-        short_name: 'DealerApp',
+        name: 'Dealrix',
+        short_name: 'Dealrix',
         description: 'Manage grocery store easily',
         theme_color: '#0ea5e9',
         background_color: '#ffffff',
