@@ -15,6 +15,9 @@ import './Dashboard.css';
 export default function Dashboard() {
   const navigate = useNavigate();
 
+  const [data, setData] = useState([]);
+
+  // ✅ YOUR ORIGINAL STATES (unchanged)
   const [inventory, setInventory] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [sales, setSales] = useState([]);
@@ -22,6 +25,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [retailers, setRetailers] = useState([]);
 
+  // ✅ SINGLE AUTH LISTENER (FIXED - NO DUPLICATE)
   useEffect(() => {
     let unsub1 = () => {};
     let unsub2 = () => {};
@@ -32,18 +36,23 @@ export default function Dashboard() {
     const unsubAuth = onAuthStateChanged(auth, (u) => {
       if (!u) {
         console.log("Waiting for user...");
+
+        // ✅ SAFE REDIRECT (NO LOOP)
+        if (window.location.pathname !== "/login") {
+          navigate("/login");
+        }
+
         setInventory([]);
         setTransactions([]);
         setSales([]);
         setLoads([]);
-        setRetailers([]); 
+        setRetailers([]);
         return;
       }
 
       console.log("User ready:", u.uid);
       setUser(u);
 
-      // ✅ SAFE REALTIME SUBSCRIPTIONS
       unsub1 = subscribeInventory((data) => {
         console.log("Inventory:", data);
         setInventory(data || []);
@@ -61,8 +70,8 @@ export default function Dashboard() {
       unsub4 = subscribeLoads((data) => {
         setLoads(data || []);
       });
-          unsub5 = subscribeRetailers((data) => setRetailers(data || [])); // ✅ FIX
 
+      unsub5 = subscribeRetailers((data) => setRetailers(data || []));
     });
 
     return () => {
@@ -75,7 +84,7 @@ export default function Dashboard() {
     };
   }, []);
 
-  // ✅ SAFE CALCULATIONS
+  // ✅ SAME LOGIC (UNCHANGED)
   const totalItems = inventory?.length || 0;
 
   const lowStock = (inventory || []).filter(item => {
@@ -88,9 +97,8 @@ export default function Dashboard() {
     .filter(t => (t?.type || t?.category) === 'expense')
     .reduce((sum, t) => sum + Number(t?.amount || t?.amt || 0), 0);
 
- const totalPending = (retailers || [])
-  .reduce((sum, r) => sum + Number(r.pendingAmount || 0), 0);
-  
+  const totalPending = (retailers || [])
+    .reduce((sum, r) => sum + Number(r.pendingAmount || 0), 0);
 
   const stats = [
     {
@@ -176,28 +184,23 @@ export default function Dashboard() {
         <div className="action-row">
 
           <button className="action-btn action-green" onClick={() => navigate('/add-load')}>
-            <span>📥</span>
-            <span>Add Load</span>
+            📥 Add Load
           </button>
 
           <button className="action-btn action-orange" onClick={() => navigate('/add-expense')}>
-            <span>💸</span>
-            <span>Add Expense</span>
+            💸 Add Expense
           </button>
 
           <button className="action-btn action-teal" onClick={() => navigate('/sell-load')}>
-            <span>🛒</span>
-            <span>Sell Load</span>
+            🛒 Sell Load
           </button>
 
           <button className="action-btn action-blue" onClick={() => navigate('/retailers')}>
-            <span>🏪</span>
-            <span>Retailers</span>
+            🏪 Retailers
           </button>
 
           <button className="action-btn action-blue" onClick={() => navigate('/transactions')}>
-            <span>📄</span>
-            <span>Transactions</span>
+            📄 Transactions
           </button>
 
         </div>

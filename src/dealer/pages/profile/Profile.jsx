@@ -6,22 +6,40 @@ import { auth } from "../../../firebase";
 import './Profile.css';
 
 export default function Profile() {
-  const { user, getDashboardStats, inventory, retailers, sellLoads, expenses } = useStore();
+
+  // ✅ SINGLE STORE CALL (FIXED)
+  const { 
+    user, 
+    getDashboardStats, 
+    inventory, 
+    retailers, 
+    sellLoads, 
+    expenses,
+    logout 
+  } = useStore();
+
   const navigate = useNavigate();
 
   const { totalItems, monthlyExpenses, totalPending } = getDashboardStats();
-  const totalSales = sellLoads.reduce((s, l) => s + (Number(l.total) || 0), 0);
 
-  const handleLogout = async () => {
-    if (window.confirm('Logout from Dealer App?')) {
-      try {
-        await signOut(auth); // ✅ Firebase logout
-        navigate('/login'); // ✅ redirect
-      } catch (err) {
-        console.error("Logout error:", err);
-      }
+  const totalSales = sellLoads.reduce(
+    (s, l) => s + (Number(l.total) || 0), 
+    0
+  );
+
+  // ✅ CLEAN LOGOUT (STABLE)
+ const handleLogout = async () => {
+  if (window.confirm('Logout from Dealer App?')) {
+    try {
+      await signOut(auth);   // Firebase logout
+      logout();              // Clear store
+      navigate('/login');    // Redirect
+
+    } catch (err) {
+      console.error("Logout error:", err);
     }
-  };
+  }
+};
 
   return (
     <div className="screen">
@@ -30,7 +48,9 @@ export default function Profile() {
       </div>
 
       <div className="profile-hero">
-        <div className="profile-hero-avatar">{(user?.name || 'D')[0].toUpperCase()}</div>
+        <div className="profile-hero-avatar">
+          {(user?.name || 'D')[0].toUpperCase()}
+        </div>
         <h2 className="profile-hero-name">{user?.name}</h2>
         <p className="profile-hero-agency">{user?.agency}</p>
         <p className="profile-hero-phone">📞 {user?.phone}</p>
@@ -80,7 +100,7 @@ export default function Profile() {
           </Card>
         ))}
 
-        {/* ✅ WORKING LOGOUT BUTTON */}
+        {/* ✅ LOGOUT */}
         <button
           id="logout-btn"
           className="btn-danger btn-block"

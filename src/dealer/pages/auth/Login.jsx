@@ -1,13 +1,31 @@
-import { useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../data/mockStore';
 import './Login.css';
-import { auth } from '../../../firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { auth, db } from '../../../firebase';
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged } from "firebase/auth";
+import {
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  GoogleAuthProvider,
+  signInWithPopup
+} from 'firebase/auth';
+
+import { doc, setDoc } from "firebase/firestore";
 
 export default function Login() {
   const { login } = useStore();
   const navigate = useNavigate();
+  useEffect(() => {
+  const unsub = onAuthStateChanged(auth, (user) => {
+    if (user) {
+  navigate("/dashboard");
+}
+  });
+
+  return () => unsub();
+}, [navigate]);
 
   const [form, setForm] = useState({
     name: '',
@@ -19,17 +37,7 @@ export default function Login() {
   const [showOtp, setShowOtp] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // ✅ Setup Recaptcha (safe)
-  const setupRecaptcha = () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        'recaptcha-container',
-        { size: 'invisible' }
-      );
-    }
-  };
-
+  // ✅ VALIDATION
   const validate = () => {
     const e = {};
     if (!form.name.trim()) e.name = 'Name is required';
@@ -38,7 +46,22 @@ export default function Login() {
     return e;
   };
 
-  // ✅ Send OTP
+  // ✅ SETUP RECAPTCHA (FIXED)
+  const setupRecaptcha = async () => {
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+    }
+
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      'recaptcha-container',
+      { size: 'invisible' },
+      auth
+    );
+
+    await window.recaptchaVerifier.render();
+  };
+
+  // ✅ SEND OTP
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -49,7 +72,7 @@ export default function Login() {
     }
 
     try {
-      setupRecaptcha();
+      await setupRecaptcha();
 
       const confirmationResult = await signInWithPhoneNumber(
         auth,
@@ -61,31 +84,72 @@ export default function Login() {
 
       setShowOtp(true);
       alert('OTP Sent ✅');
+
     } catch (err) {
-      console.error(err);
-      alert('Error sending OTP ❌');
+      console.error("OTP ERROR:", err);
+      alert(err.message);
     }
   };
 
-  // ✅ Verify OTP
+  // ✅ VERIFY OTP
   const verifyOtp = async () => {
     try {
       const result = await window.confirmationResult.confirm(otp);
-
       const user = result.user;
 
-      // Save user with UID
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          name: form.name,
+          phone: form.phone,
+          agency: form.agency,
+          createdAt: new Date()
+        },
+        { merge: true }
+      );
+
       login({
         ...form,
         uid: user.uid
       });
 
-      console.log('UID:', user.uid);
-
       navigate('/dashboard');
+
     } catch (err) {
       console.error(err);
       alert('Invalid OTP ❌');
+    }
+  };
+
+  // ✅ GOOGLE LOGIN
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          name: user.displayName,
+          email: user.email,
+          createdAt: new Date()
+        },
+        { merge: true }
+      );
+
+      login({
+        name: user.displayName,
+        phone: user.phoneNumber || "",
+        agency: form.agency || "New User",
+        uid: user.uid
+      });
+
+      navigate('/dashboard');
+
+    } catch (err) {
+      console.error(err);
+      alert('Google login failed');
     }
   };
 
@@ -100,6 +164,7 @@ export default function Login() {
       [field]: ''
     }));
   };
+  
 
   return (
     <div className="login-screen">
@@ -115,7 +180,6 @@ export default function Login() {
           <label className="field-label">Your Name</label>
           <input
             className={`field-input ${errors.name ? 'error' : ''}`}
-            placeholder="e.g. Rajesh Kumar"
             value={form.name}
             onChange={handleChange('name')}
           />
@@ -126,7 +190,6 @@ export default function Login() {
           <label className="field-label">Phone Number</label>
           <input
             className={`field-input ${errors.phone ? 'error' : ''}`}
-            placeholder="10-digit mobile number"
             type="tel"
             maxLength={10}
             value={form.phone}
@@ -139,7 +202,6 @@ export default function Login() {
           <label className="field-label">Agency / Shop Name</label>
           <input
             className={`field-input ${errors.agency ? 'error' : ''}`}
-            placeholder="e.g. Kumar Distributors"
             value={form.agency}
             onChange={handleChange('agency')}
           />
@@ -150,13 +212,21 @@ export default function Login() {
           Login →
         </button>
 
+        {/* 🔐 GOOGLE BUTTON */}
+        <button
+          type="button"
+          className="btn-primary login-btn"
+          onClick={handleGoogleLogin}
+        >
+          🔐 Login with Google
+        </button>
+
         {showOtp && (
           <>
             <div className="field-group">
               <label className="field-label">Enter OTP</label>
               <input
                 className="field-input"
-                placeholder="Enter OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
               />
@@ -175,7 +245,6 @@ export default function Login() {
 
       <p className="login-footer">Dealer Distribution Management</p>
 
-      {/* ✅ Required for Firebase */}
       <div id="recaptcha-container"></div>
     </div>
   );
