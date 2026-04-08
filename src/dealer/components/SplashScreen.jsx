@@ -14,12 +14,9 @@ export default function SplashScreen({ onFinish }) {
   return (
     <div className="splash-container">
 
-      <div className="logo-wrapper">
-        <img src="/assets/icon-512.png" alt="Dealrix Logo" className="logo-img" />
-        <h2 className="tagline">Dealer Management App</h2>
+      <div className="wipe-wrapper">
+        <img src="/assets/icon-512.png" alt="Dealrix Logo" className="wipe-img" />
       </div>
-
-      <div className="loader"></div>
 
     </div>
   );
