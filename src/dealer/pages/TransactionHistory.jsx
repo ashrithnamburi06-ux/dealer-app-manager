@@ -10,29 +10,19 @@ export default function Transactions() {
   const [activeTab, setActiveTab] = useState('company');
   const [transactions, setTransactions] = useState([]);
 
-  useEffect(() => {
-    let unsubSnapshot = () => {};
+ useEffect(() => {
+  const unsub = subscribeTransactions((data) => {
+    console.log("🔥 Data received:", data);
+    setTransactions([...(Array.isArray(data) ? data : [])]);
+  });
 
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        unsubSnapshot = subscribeTransactions((data) => {
-          setTransactions(Array.isArray(data) ? data : []);
-        });
-      } else {
-        setTransactions([]);
-      }
-    });
-
-    return () => {
-      unsubAuth();
-      unsubSnapshot();
-    };
-  }, []);
+  return () => unsub();
+}, []);
 
   // ✅ FILTER
   const filteredTransactions = (transactions || []).filter((t) => {
     if (activeTab === 'company') return t.type === 'add';
-    if (activeTab === 'retailer') return t.retailerId;
+if (activeTab === 'retailer') return t.type === 'sell';
     if (activeTab === 'expenses') return t.type === 'expense';
     return false;
   });

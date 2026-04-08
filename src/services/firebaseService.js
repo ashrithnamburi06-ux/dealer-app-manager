@@ -250,28 +250,36 @@ export const deleteInventoryItem = async (id) => {
 // REALTIME
 // ==================
 const safeSubscribe = (name, callback) => {
-  let unsubSnap = () => {};
+  let unsubscribeSnapshot = () => {};
 
-  const unsubAuth = onAuthStateChanged(auth, (user) => {
+  const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
     if (!user) {
+      console.log("❌ No user");
       callback([]);
       return;
     }
 
+    console.log("✅ User ready:", user.uid);
+
     const ref = collection(db, "users", user.uid, name);
 
-    unsubSnap = onSnapshot(ref, (snap) => {
-      const data = snap.docs.map(d => ({
-        id: d.id,
-        ...d.data()
+    // 🔥 attach snapshot properly
+    unsubscribeSnapshot = onSnapshot(ref, (snap) => {
+      console.log(`🔥 ${name} updated`);
+
+      const data = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
       }));
+
       callback(data);
     });
   });
 
+  // 🔥 return BOTH unsubscribes correctly
   return () => {
-    unsubAuth();
-    unsubSnap();
+    unsubscribeAuth();
+    unsubscribeSnapshot();
   };
 };
 
