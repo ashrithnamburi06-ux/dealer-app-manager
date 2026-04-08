@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../../data/mockStore';
 import Card from '../../components/Card';
 import './Retailers.css';
+import { FaPhoneAlt } from "react-icons/fa";
 
 export default function RetailerDetails() {
   const { id } = useParams();
@@ -86,6 +87,12 @@ export default function RetailerDetails() {
           <div className="profile-avatar">{retailer.shopName[0].toUpperCase()}</div>
           <h3 className="profile-shop">{retailer.shopName}</h3>
           <p className="profile-owner">{retailer.ownerName}</p>
+          <p className="profile-owner">
+  📞 {retailer.phone}
+  <a href={`tel:${retailer.phone}`} style={{ marginLeft: "8px", color: "green" }}>
+    <FaPhoneAlt />
+  </a>
+</p>
         </Card>
 
         <Card className={`pending-card ${retailer.pendingAmount > 0 ? 'pending-card-red' : 'pending-card-green'}`}>

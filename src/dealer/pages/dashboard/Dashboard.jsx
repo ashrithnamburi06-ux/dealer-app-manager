@@ -2,6 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Card from '../../components/Card';
 import { subscribeRetailers } from "../../../services/firebaseService";
+import { checkDueReminders } from "../../../utils/dueReminder";
+import { checkStockReminders } from "../../../utils/stockReminder";
+
 import {
   subscribeInventory,
   subscribeTransactions,
@@ -24,6 +27,8 @@ export default function Dashboard() {
   const [loads, setLoads] = useState([]);
   const [user, setUser] = useState(null);
   const [retailers, setRetailers] = useState([]);
+
+  
 
   // ✅ SINGLE AUTH LISTENER (FIXED - NO DUPLICATE)
   useEffect(() => {
@@ -83,6 +88,27 @@ export default function Dashboard() {
       unsub5();
     };
   }, []);
+  // 🔹 subscribe only
+// 🔔 Ask notification permission (run once)
+useEffect(() => {
+  if ("Notification" in window) {
+    Notification.requestPermission();
+  }
+}, []);
+
+// 🔹 Subscribe retailers (real-time)
+useEffect(() => {
+  const unsubscribe = subscribeRetailers(setRetailers);
+  return () => unsubscribe();
+}, []);
+
+// 🔥 REMINDERS (ONLY ONE PLACE)
+useEffect(() => {
+  if (retailers.length && loads.length) {
+    checkStockReminders(loads, retailers);
+    checkDueReminders(retailers, loads);
+  }
+}, [retailers, loads]);
 
   // ✅ SAME LOGIC (UNCHANGED)
   const totalItems = inventory?.length || 0;
