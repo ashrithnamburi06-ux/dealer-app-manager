@@ -1,25 +1,30 @@
 .splash-container {
   height: 100vh;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #ffffff;
 }
 
-/* Wrapper hides content initially */
+/* Wrapper */
 .wipe-wrapper {
+  position: relative;
   overflow: hidden;
-  display: inline-block;
+  width: 70%;           /* responsive */
+  max-width: 300px;     /* limit for large screens */
 }
 
-/* Image wipe effect */
+/* Image */
 .wipe-img {
-  width: 260px;
+  width: 100%;
+  height: auto;
+  display: block;
   transform: translateX(-100%);
   animation: wipeReveal 1.5s ease forwards;
 }
 
-/* Keyframes */
+/* Wipe animation */
 @keyframes wipeReveal {
   0% {
     transform: translateX(-100%);
