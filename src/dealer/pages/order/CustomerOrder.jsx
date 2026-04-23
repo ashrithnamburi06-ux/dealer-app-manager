@@ -25,7 +25,7 @@ const CustomerOrder = () => {
       }
 
       const options = {
-        key: "rzp_test_xxxxx", // 🔥 replace with your Razorpay key
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: orderData.amount * 100,
         currency: "INR",
         name: "Dealrix",
