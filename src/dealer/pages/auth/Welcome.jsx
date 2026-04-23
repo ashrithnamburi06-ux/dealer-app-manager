@@ -18,7 +18,7 @@ export default function Welcome() {
         <div className="welcome-icon">🎉</div>
         <h1 className="welcome-heading">Welcome Back!</h1>
         <p className="welcome-name">{user?.name}</p>
-        <p className="welcome-agency">{user?.agency}</p>
+        <p className="welcome-agency">{user?.shopName}</p>
         <div className="welcome-loader">
           <div className="loader-bar" />
         </div>

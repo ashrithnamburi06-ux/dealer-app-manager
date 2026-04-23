@@ -20,6 +20,23 @@ export default function Profile() {
 
   const navigate = useNavigate();
 
+  // Debug log to verify user data
+  console.log("👤 Profile page - User data:", user);
+
+  // Loading state check
+  if (!user) {
+    return (
+      <div className="screen">
+        <div className="top-bar">
+          <h2 className="page-title">Profile</h2>
+        </div>
+        <div style={{ padding: '40px', textAlign: 'center' }}>
+          Loading profile...
+        </div>
+      </div>
+    );
+  }
+
   const { totalItems, monthlyExpenses, totalPending } = getDashboardStats();
 
   const totalSales = sellLoads.reduce(
@@ -28,18 +45,18 @@ export default function Profile() {
   );
 
   // ✅ CLEAN LOGOUT (STABLE)
- const handleLogout = async () => {
-  if (window.confirm('Logout from Dealer App?')) {
-    try {
-      await signOut(auth);   // Firebase logout
-      logout();              // Clear store
-      navigate('/login');    // Redirect
-
-    } catch (err) {
-      console.error("Logout error:", err);
+  const handleLogout = async () => {
+    if (window.confirm('Logout from Dealer App?')) {
+      try {
+        await signOut(auth);   // Firebase logout
+        logout();              // Clear store
+        navigate('/');        // Redirect to login (root)
+      } catch (err) {
+        console.error("Logout error:", err);
+      }
     }
-  }
-};
+  };
+        
 
   return (
     <div className="screen">
@@ -51,9 +68,11 @@ export default function Profile() {
         <div className="profile-hero-avatar">
           {(user?.name || 'D')[0].toUpperCase()}
         </div>
-        <h2 className="profile-hero-name">{user?.name}</h2>
-        <p className="profile-hero-agency">{user?.agency}</p>
-        <p className="profile-hero-phone">📞 {user?.phone}</p>
+        <h2 className="profile-hero-name">{user?.name || "No Name"}</h2>
+        <p className="profile-hero-agency">{user?.shopName || "No Shop"}</p>
+        <p className="profile-hero-phone">
+          📞 {user?.phone ? `+91 ${user.phone}` : "No Phone"}
+        </p>
       </div>
 
       <div className="profile-stats-grid">

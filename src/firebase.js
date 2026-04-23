@@ -17,7 +17,7 @@ const app = initializeApp(firebaseConfig);
 const firebaseAuth = getAuth(app);
 
 // Enable auth persistence so users stay logged in across sessions
-// This must be called once during app initialization
+// This must be awaited before any sign-in operations
 setPersistence(firebaseAuth, browserLocalPersistence)
   .then(() => {
     console.log("✅ Firebase auth persistence enabled (browserLocalPersistence)");

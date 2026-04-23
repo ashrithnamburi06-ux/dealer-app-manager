@@ -182,9 +182,14 @@ export default function OrderPage() {
       setPaymentStatus('processing');
       setError(null);
 
-      // Use relative API path for Vercel deployment
-      const apiUrl = '/api/create-order';
+      // Use environment-based API URL
+      const API_BASE = import.meta.env.MODE === "development" 
+        ? "http://localhost:5000" 
+        : "";
+      const apiUrl = `${API_BASE}/api/create-order`;
       
+      console.log("📡 Environment:", import.meta.env.MODE);
+      console.log("📡 API Base:", API_BASE);
       console.log("📡 Calling API:", apiUrl);
       console.log("📡 Amount in paise:", totalAmount * 100);
 
@@ -258,22 +263,35 @@ export default function OrderPage() {
           try {
             setPaymentStatus('processing');
             
-            // Verify payment
-            const verifyUrl = '/api/verify-payment';
+            // Use environment-based API URL
+            const API_BASE = import.meta.env.MODE === "development" 
+              ? "http://localhost:5000" 
+              : "";
+            const verifyUrl = `${API_BASE}/api/verify-payment`;
             
-            console.log("🔍 Verifying payment...");
+            console.log("🔍 Verifying payment at:", verifyUrl);
+            console.log("📦 Order data:", { items: orderItems, totalAmount, customerName, customerPhone });
+            
             const verification = await fetch(verifyUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ razorpay_order_id, razorpay_payment_id, razorpay_signature })
+              body: JSON.stringify({ 
+                razorpay_order_id, 
+                razorpay_payment_id, 
+                razorpay_signature,
+                orderData: {
+                  items: orderItems,
+                  totalAmount,
+                  customerName,
+                  customerPhone,
+                  orderId: id
+                }
+              })
             }).then(res => res.json());
 
             console.log("✅ Verification response:", verification);
 
             if (verification.success) {
-              // Update Firestore order using orderService
-              await updateOrderStatus(id, razorpay_payment_id, razorpay_order_id, orderItems, totalAmount, customerName, customerPhone);
-              
               // Set success state
               setPaymentSuccess(true);
               setPaymentData({

@@ -51,20 +51,49 @@ export function StoreProvider({ children }) {
   // ── FIREBASE AUTH LISTENER ────────────────────────
   useEffect(() => {
     console.log("🔐 Setting up Firebase auth state listener...");
-    const unsubAuth = onAuthStateChanged(auth, (u) => {
+    const unsubAuth = onAuthStateChanged(auth, async (u) => {
       console.log("🔐 Auth state changed:", u ? `User: ${u.email}` : "No user");
       setFirebaseUser(u);
       setAuthLoading(false);
       
       // Sync Firebase auth state with user state
       if (u) {
-        // User is logged in - update user state with Firebase user data
-        setUser({
-          uid: u.uid,
-          email: u.email,
-          phoneNumber: u.phoneNumber,
-          displayName: u.displayName
-        });
+        // User is logged in - fetch Firestore data and update user state
+        try {
+          const ref = doc(db, "users", u.uid);
+          const snap = await getDoc(ref);
+          
+          if (snap.exists()) {
+            const userData = snap.data();
+            console.log("📄 Firestore user data:", userData);
+            setUser({
+              uid: u.uid,
+              email: u.email,
+              phoneNumber: u.phoneNumber,
+              displayName: u.displayName,
+              name: userData.name,
+              phone: userData.phone,
+              shopName: userData.shopName
+            });
+          } else {
+            console.log("⚠️ No Firestore document found, using Firebase auth data only");
+            setUser({
+              uid: u.uid,
+              email: u.email,
+              phoneNumber: u.phoneNumber,
+              displayName: u.displayName
+            });
+          }
+        } catch (err) {
+          console.error("❌ Error fetching Firestore user data:", err);
+          // Fallback to Firebase auth data
+          setUser({
+            uid: u.uid,
+            email: u.email,
+            phoneNumber: u.phoneNumber,
+            displayName: u.displayName
+          });
+        }
       } else {
         // User is logged out - clear user state
         setUser(null);

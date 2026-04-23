@@ -15,8 +15,6 @@ import CustomerOrder from "./dealer/pages/order/CustomerOrder";
 // Auth
 import Login from './dealer/pages/auth/Login';
 import Welcome from './dealer/pages/auth/Welcome';
-import LoginPassword from "./dealer/pages/auth/LoginPassword";
-import SetPassword from "./dealer/pages/auth/SetPassword";
 
 // Payment
 import PaymentPage from './dealer/pages/PaymentPage';
@@ -100,10 +98,6 @@ function AppRoutes() {
         element={<Login />}
       />
       <Route path="/welcome" element={<Welcome />} />
-      <Route path="/login-password" element={<LoginPassword />} />
-      <Route path="/set-password" element={<SetPassword />} />
-      {/* Public Order Page */}
-      <Route path="/order" element={<CustomerOrder />} />
       {/* Payment Routes - Public */}
       <Route path="/pay/:id" element={<PaymentPage />} />
       <Route path="/order/:id" element={<OrderPage />} />
