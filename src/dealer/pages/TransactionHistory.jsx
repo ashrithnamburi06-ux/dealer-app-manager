@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { subscribeTransactions } from "../../services/firebaseService";
+import { subscribeTransactions } from "./services/firebaseService";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../firebase";
+import { auth } from "@/firebase";
 import './Transactions.css';
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";

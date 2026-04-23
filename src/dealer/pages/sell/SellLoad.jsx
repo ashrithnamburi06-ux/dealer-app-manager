@@ -19,7 +19,7 @@ export default function SellLoad() {
 
   // Step 2: Items
   const [items, setItems] = useState([
-  { itemId: '', boxes: '', pieces: '', dealerPrice: '', mrpPrice: '', totalPrice: '' },
+  { itemId: '', boxes: '', pieces: '', dealerBoxPrice: '', mrpPrice: '', totalPrice: '' },
 ]);
   
 
@@ -33,10 +33,10 @@ export default function SellLoad() {
   const itemTotals = items.map((it) => {
     const inv = getItemById(it.itemId);
     const qty = (Number(it.boxes || 0) * (inv?.pieces || 1)) + Number(it.pieces || 0);
-    return Number(it.dealerPrice || 0) * (Number(it.boxes || 0) + Number(it.pieces || 0) * 0.1);
+    return Number(it.dealerBoxPrice || 0) * (Number(it.boxes || 0) + Number(it.pieces || 0) * 0.1);
   });
 
-  // Simpler: total = boxes * dealerPrice  (per box)
+  // Simpler: total = boxes * dealerBoxPrice  (per box)
   const grandTotal = items.reduce((sum, it) => {
   return sum + Number(it.totalPrice || 0);
 }, 0);
@@ -92,7 +92,7 @@ export default function SellLoad() {
       // Auto-fill dealer price from inventory
       if (field === 'itemId') {
         const inv = getItemById(val);
-        if (inv) next[i].dealerPrice = String(inv.price);
+        if (inv) next[i].dealerBoxPrice = String(inv.dealerBoxPrice || inv.price || 0);
       }
       return next;
     });
@@ -102,7 +102,7 @@ export default function SellLoad() {
   const addItemRow = () =>
   setItems((p) => [
     ...p,
-    { itemId: '', boxes: '', pieces: '', dealerPrice: '', mrpPrice: '', totalPrice: '' }
+    { itemId: '', boxes: '', pieces: '', dealerBoxPrice: '', mrpPrice: '', totalPrice: '' }
   ]);
   const removeItemRow = (i) => setItems((p) => p.filter((_, idx) => idx !== i));
 
@@ -136,7 +136,7 @@ export default function SellLoad() {
           itemName: getItemById(it.itemId)?.name || '',
           boxes: Number(it.boxes || 0),
           pieces: Number(it.pieces || 0),
-          dealerPrice: Number(it.dealerPrice),
+          dealerBoxPrice: Number(it.dealerBoxPrice),
           mrpPrice: Number(it.mrpPrice || 0),
           totalPrice: Number(it.totalPrice || 0),
         })),
@@ -297,7 +297,7 @@ export default function SellLoad() {
                 <div className="field-row">
                   <div className="field-group flex-1">
                     <label className="field-label">Dealer Price *</label>
-                    <input className={`field-input ${errors[`price_${i}`] ? 'error' : ''}`} type="number" min="0" placeholder="₹0" value={it.dealerPrice} onChange={(e) => updateItem(i, 'dealerPrice', e.target.value)} />
+                    <input className={`field-input ${errors[`price_${i}`] ? 'error' : ''}`} type="number" min="0" placeholder="₹0" value={it.dealerBoxPrice} onChange={(e) => updateItem(i, 'dealerBoxPrice', e.target.value)} />
                     {errors[`price_${i}`] && <span className="field-error">{errors[`price_${i}`]}</span>}
                   </div>
                   <div className="field-group flex-1">

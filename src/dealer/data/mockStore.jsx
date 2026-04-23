@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { auth } from '@/firebase';
 import {
   subscribeInventory,
   subscribeTransactions,
@@ -19,7 +19,7 @@ import {
   updateRetailer as fbUpdateRetailer,
   recordPayment as fbRecordPayment,
   addBill as fbAddBill
-} from '../../services/firebaseService';
+} from '../pages/services/firebaseService';
 
 // ─── Context ─────────────────────────────────────────
 export const StoreContext = createContext(null);

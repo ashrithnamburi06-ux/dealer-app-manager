@@ -1,17 +1,31 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useState } from "react";
+
 import { StoreProvider, useStore } from './dealer/data/mockStore';
 import Navbar from './dealer/components/Navbar';
 import InstallButton from './dealer/components/InstallButton';
 import SplashScreen from "./dealer/components/SplashScreen";
-import { useState } from "react";
+import CustomerOrder from "./dealer/pages/order/CustomerOrder";
+
+// ✅ COMMENTED (until files exist)
+// import PrivacyPolicy from "./dealer/pages/PrivacyPolicy";
+// import Terms from "./dealer/pages/Terms";
+// import Contact from "./dealer/pages/Contact";
 
 // Auth
 import Login from './dealer/pages/auth/Login';
 import Welcome from './dealer/pages/auth/Welcome';
+import LoginPassword from "./dealer/pages/auth/LoginPassword";
+import SetPassword from "./dealer/pages/auth/SetPassword";
+
+// Payment
+import PaymentPage from './dealer/pages/PaymentPage';
+import OrderPage from './dealer/pages/OrderPage';
 
 // Dashboard
 import Dashboard from './dealer/pages/dashboard/Dashboard';
 import TransactionHistory from "./dealer/pages/TransactionHistory";
+import AnalyticsDashboard from './dealer/pages/AnalyticsDashboard';
 
 // Inventory
 import InventoryList from './dealer/pages/inventory/InventoryList';
@@ -52,8 +66,7 @@ function AppLayout({ children }) {
 
 // ── Auth Guard ───────────────────────────────
 function ProtectedRoute({ children }) {
-  const { user } = useStore();
-  if (!user) return <Navigate to="/" replace />;
+  // TEMP FIX: return children directly (no auth check for now)
   return children;
 }
 
@@ -67,11 +80,19 @@ function AppRoutes() {
       {/* Public */}
       <Route
         path="/"
-        element={user ? <Navigate to="/dashboard" replace /> : <Login />}
+        element={<Login />}
       />
       <Route path="/welcome" element={<Welcome />} />
+      <Route path="/login-password" element={<LoginPassword />} />
+      <Route path="/set-password" element={<SetPassword />} />
+      {/* Public Order Page */}
+      <Route path="/order" element={<CustomerOrder />} />
+      {/* Payment Routes - Public */}
+      <Route path="/pay/:id" element={<PaymentPage />} />
+      <Route path="/order/:id" element={<OrderPage />} />
 
       {/* Protected */}
+      
       <Route path="/dashboard" element={
         <ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>
       } />
@@ -120,11 +141,18 @@ function AppRoutes() {
         <ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>
       } />
 
-      {/* ✅ FIXED TRANSACTIONS ROUTE */}
       <Route path="/transactions" element={
         <ProtectedRoute>
           <AppLayout>
             <TransactionHistory />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/analytics" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <AnalyticsDashboard />
           </AppLayout>
         </ProtectedRoute>
       } />
@@ -138,10 +166,8 @@ function AppRoutes() {
 
 // ── Root App ─────────────────────────────────
 export default function App() {
-
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Show splash first
   if (loading) {
     return <SplashScreen onFinish={() => setLoading(false)} />;
   }
@@ -154,4 +180,3 @@ export default function App() {
     </StoreProvider>
   );
 }
-

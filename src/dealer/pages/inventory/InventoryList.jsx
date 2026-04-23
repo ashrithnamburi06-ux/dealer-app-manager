@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import Card from "../../components/Card";
 import "./Inventory.css";
 
-import { subscribeInventory } from "../../../services/firebaseService"; // ✅ Firebase
+import { subscribeInventory } from "../services/firebaseService"; // ✅ Firebase
 
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../../firebase";
+import { auth } from "@/firebase";
 
 export default function InventoryList() {
   const navigate = useNavigate();
@@ -68,7 +68,14 @@ export default function InventoryList() {
         )}
 
         {inventory.map((item) => {
-          const isLow = item.boxes <= item.minStock;
+          const isLow = item.boxes <= (item.minStock || 0);
+          const dealerBoxPrice = Number(item.dealerBoxPrice || item.price || 0);
+          const totalValue = (Number(item.boxes) || 0) * dealerBoxPrice;
+          
+          // Handle both old (grams) and new (quantity + unit) structure
+          const quantityInfo = item.quantity 
+            ? `${item.quantity} ${item.unit}` 
+            : item.grams || 'N/A';
 
           return (
             <Card
@@ -81,7 +88,7 @@ export default function InventoryList() {
                 <div>
                   <p className="inv-name">{item.name}</p>
                   <p className="inv-sub">
-                    {item.grams} · ₹{item.price}
+                    {quantityInfo} · ₹{dealerBoxPrice}
                   </p>
                 </div>
 
@@ -101,12 +108,12 @@ export default function InventoryList() {
                 </div>
 
                 <div className="inv-stat">
-                  <span className="inv-stat-val">{item.pieces}</span>
-                  <span className="inv-stat-lbl">Pieces</span>
+                  <span className="inv-stat-val">₹{totalValue.toLocaleString()}</span>
+                  <span className="inv-stat-lbl">Total Value</span>
                 </div>
 
                 <div className="inv-stat">
-                  <span className="inv-stat-val">{item.minStock}</span>
+                  <span className="inv-stat-val">{item.minStock || 0}</span>
                   <span className="inv-stat-lbl">Min Stock</span>
                 </div>
               </div>
@@ -125,7 +132,7 @@ export default function InventoryList() {
                   className="btn-danger btn-sm"
                   onClick={async () => {
                     if (window.confirm('Delete this item?')) {
-                      const { deleteInventoryItem } = await import("../../../services/firebaseService");
+                      const { deleteInventoryItem } = await import("../services/firebaseService");
                       await deleteInventoryItem(item.id);
                     }
                   }}

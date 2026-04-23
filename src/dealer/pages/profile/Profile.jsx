@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../data/mockStore';
 import Card from '../../components/Card';
 import { signOut } from "firebase/auth";
-import { auth } from "../../../firebase";
+import { auth } from "@/firebase";
 import './Profile.css';
 
 export default function Profile() {

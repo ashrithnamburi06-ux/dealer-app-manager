@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { addItem } from "../../../services/firebaseService"; // ✅ Firebase
+import { addItem } from "../services/firebaseService"; // ✅ Firebase
 import './Inventory.css';
 
 const GRAMS_OPTIONS = ['50g', '100g', '150g', '200g', '250g', '500g', '1kg'];

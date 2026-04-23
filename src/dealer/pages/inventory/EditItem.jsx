@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../../data/mockStore';
-import { updateInventoryItem } from '../../../services/firebaseService';
+import { updateInventoryItem } from '../services/firebaseService';
 import './Inventory.css';
 
 const GRAMS_OPTIONS = ['50g', '100g', '150g', '200g', '250g', '500g', '1kg'];

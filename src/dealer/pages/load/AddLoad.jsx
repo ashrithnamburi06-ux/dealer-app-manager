@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AddLoad.css';
-import { addLoad, addTransaction, subscribeInventory } from "../../../services/firebaseService";
+import { addLoad, addTransaction, subscribeInventory } from "../services/firebaseService";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../../firebase";
+import { auth } from "@/firebase";
 import { useEffect } from "react";
 
-const GRAMS_OPTIONS = ['50g', '100g', '150g', '200g', '250g', '500g', '1kg'];
-
+const UNITS = [
+  { label: "Liters", value: "liters" },
+  { label: "Kg", value: "kg" },
+  { label: "Ton", value: "ton" },
+  { label: "Quinta", value: "quinta" },
+  { label: "Grams", value: "Grams" },
+  { label: "Other", value: "other" }
+];
 
 export default function AddLoad() {
   const navigate = useNavigate();
@@ -32,8 +38,10 @@ export default function AddLoad() {
 
   const [form, setForm] = useState({
     itemName: '',
-    grams: '100g',
+    quantity: '',
+    unit: 'kg',
     boxes: '',
+    dealerBoxPrice: '',
     supplierName: '',
     supplierPhone: '',
     arrivalTime: '',
@@ -50,10 +58,23 @@ export default function AddLoad() {
     Number(form.totalAmount || 0) - Number(form.amountPaid || 0)
   );
 
+  // Auto-calculate total amount when boxes or dealerBoxPrice changes
+  useEffect(() => {
+    const boxes = Number(form.boxes) || 0;
+    const dealerBoxPrice = Number(form.dealerBoxPrice) || 0;
+    const total = boxes * dealerBoxPrice;
+    
+    if (total > 0) {
+      setForm(prev => ({ ...prev, totalAmount: total.toString() }));
+    }
+  }, [form.boxes, form.dealerBoxPrice]);
+
   const validate = () => {
     const e = {};
     if (!form.itemName.trim()) e.itemName = 'Item name required';
-    if (!form.boxes || Number(form.boxes) < 0) e.boxes = 'Enter boxes';
+    if (!form.quantity || Number(form.quantity) <= 0) e.quantity = 'Enter quantity';
+    if (!form.boxes || Number(form.boxes) <= 0) e.boxes = 'Enter boxes';
+    if (!form.dealerBoxPrice || Number(form.dealerBoxPrice) <= 0) e.dealerBoxPrice = 'Enter dealer box price';
     if (!form.supplierName.trim()) e.supplierName = 'Supplier name required';
     if (!form.totalAmount || Number(form.totalAmount) <= 0)
       e.totalAmount = 'Enter total amount';
@@ -80,7 +101,7 @@ export default function AddLoad() {
 const selectedItem = inventory.find(
   (i) =>
     i.name?.trim().toLowerCase() === form.itemName.trim().toLowerCase()
-    && String(i.grams) === String(form.grams)
+    && String(i.grams) === String(form.quantity + form.unit)
 );
 
 // ✅ Allow new items
@@ -92,8 +113,10 @@ const itemId = selectedItem?.id || null;// 🔥 fallback to first item
       await addLoad({
         itemId: itemId,
         itemName: form.itemName,
+        quantity: Number(form.quantity),
+        unit: form.unit,
         boxes: Number(form.boxes),
-         grams: form.grams,
+        dealerBoxPrice: Number(form.dealerBoxPrice),
         supplierName: form.supplierName,
         totalAmount: Number(form.totalAmount),
         amountPaid: Number(form.amountPaid || 0),
@@ -130,7 +153,7 @@ const itemId = selectedItem?.id || null;// 🔥 fallback to first item
       </div>
 
       <form className="form-body" onSubmit={handleSubmit}>
-        <div className="form-section-title">📦 Stock Info</div>
+        <div className="form-section-title">📦 Item Info</div>
 
         <div className="field-group">
           <label className="field-label">Item Name *</label>
@@ -151,18 +174,44 @@ const itemId = selectedItem?.id || null;// 🔥 fallback to first item
           )}
         </div>
 
+        <div className="form-section-title">⚖️ Quantity & Unit</div>
+
         <div className="field-row">
           <div className="field-group flex-1">
-            <label className="field-label">Grams</label>
+            <label className="field-label">Quantity *</label>
             <input
-              className="field-input"
+              className={`field-input ${errors.quantity ? 'error' : ''}`}
               type="number"
-              placeholder="Enter grams (e.g. 100)"
-              value={form.grams}
-              onChange={handleChange('grams')}
+              min="0"
+              step="0.01"
+              placeholder="Enter quantity"
+              value={form.quantity}
+              onChange={handleChange('quantity')}
             />
+            {errors.quantity && (
+              <span className="field-error">{errors.quantity}</span>
+            )}
           </div>
 
+          <div className="field-group flex-1">
+            <label className="field-label">Unit *</label>
+            <select
+              className="field-input"
+              value={form.unit}
+              onChange={handleChange('unit')}
+            >
+              {UNITS.map(unit => (
+                <option key={unit.value} value={unit.value}>
+                  {unit.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="form-section-title">📦 Pricing</div>
+
+        <div className="field-row">
           <div className="field-group flex-1">
             <label className="field-label">Boxes *</label>
             <input
@@ -175,6 +224,22 @@ const itemId = selectedItem?.id || null;// 🔥 fallback to first item
             />
             {errors.boxes && (
               <span className="field-error">{errors.boxes}</span>
+            )}
+          </div>
+
+          <div className="field-group flex-1">
+            <label className="field-label">Dealer Box Price *</label>
+            <input
+              className={`field-input ${errors.dealerBoxPrice ? 'error' : ''}`}
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="₹0"
+              value={form.dealerBoxPrice}
+              onChange={handleChange('dealerBoxPrice')}
+            />
+            {errors.dealerBoxPrice && (
+              <span className="field-error">{errors.dealerBoxPrice}</span>
             )}
           </div>
         </div>
@@ -226,6 +291,7 @@ const itemId = selectedItem?.id || null;// 🔥 fallback to first item
               className={`field-input ${errors.totalAmount ? 'error' : ''}`}
               type="number"
               min="0"
+              step="0.01"
               placeholder="₹0"
               value={form.totalAmount}
               onChange={handleChange('totalAmount')}
@@ -241,11 +307,23 @@ const itemId = selectedItem?.id || null;// 🔥 fallback to first item
               className="field-input"
               type="number"
               min="0"
+              step="0.01"
               placeholder="₹0"
               value={form.amountPaid}
               onChange={handleChange('amountPaid')}
             />
           </div>
+        </div>
+
+        <div className="field-group">
+          <label className="field-label">Pending Amount</label>
+          <input
+            className="field-input"
+            type="number"
+            value={pendingAmount}
+            readOnly
+            style={{ backgroundColor: '#f5f5f5' }}
+          />
         </div>
 
         <div className="form-section-title">🧾 GST & Bill</div>
