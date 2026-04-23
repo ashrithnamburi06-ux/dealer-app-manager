@@ -66,13 +66,30 @@ function AppLayout({ children }) {
 
 // ── Auth Guard ───────────────────────────────
 function ProtectedRoute({ children }) {
-  // TEMP FIX: return children directly (no auth check for now)
+  const { firebaseUser, authLoading } = useStore();
+  
+  console.log("🛡️ ProtectedRoute check:", { firebaseUser: !!firebaseUser, authLoading });
+
+  // Wait for Firebase to restore session
+  if (authLoading) {
+    return <SplashScreen onFinish={() => {}} />;
+  }
+
+  // Redirect to login if not authenticated
+  if (!firebaseUser) {
+    console.log("🛡️ No user, redirecting to login");
+    return <Navigate to="/" replace />;
+  }
+
+  console.log("🛡️ User authenticated, rendering protected content");
   return children;
 }
 
 // ── Router ───────────────────────────────────
 function AppRoutes() {
-  const { user } = useStore();
+  const { user, firebaseUser, authLoading } = useStore();
+
+  console.log("🚀 AppRoutes render:", { user: !!user, firebaseUser: !!firebaseUser, authLoading });
 
   return (
     <Routes>
@@ -174,9 +191,25 @@ export default function App() {
 
   return (
     <StoreProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <AppWithAuth />
     </StoreProvider>
+  );
+}
+
+// ── App with Auth State ─────────────────────────
+function AppWithAuth() {
+  const { authLoading } = useStore();
+
+  console.log("🏠 AppWithAuth render:", { authLoading });
+
+  // Wait for Firebase auth initialization
+  if (authLoading) {
+    return <SplashScreen onFinish={() => {}} />;
+  }
+
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   );
 }

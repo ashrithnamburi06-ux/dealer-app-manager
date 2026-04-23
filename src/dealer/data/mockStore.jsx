@@ -33,6 +33,7 @@ export function StoreProvider({ children }) {
 
   // ── FIREBASE AUTH STATE ────────────────────────────
   const [firebaseUser, setFirebaseUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   // ── DATA STATES (populated by Firebase realtime) ──
   const [inventory, setInventory] = useState([]);
@@ -49,9 +50,26 @@ export function StoreProvider({ children }) {
 
   // ── FIREBASE AUTH LISTENER ────────────────────────
   useEffect(() => {
+    console.log("🔐 Setting up Firebase auth state listener...");
     const unsubAuth = onAuthStateChanged(auth, (u) => {
+      console.log("🔐 Auth state changed:", u ? `User: ${u.email}` : "No user");
       setFirebaseUser(u);
-      if (!u) {
+      setAuthLoading(false);
+      
+      // Sync Firebase auth state with user state
+      if (u) {
+        // User is logged in - update user state with Firebase user data
+        setUser({
+          uid: u.uid,
+          email: u.email,
+          phoneNumber: u.phoneNumber,
+          displayName: u.displayName
+        });
+      } else {
+        // User is logged out - clear user state
+        setUser(null);
+        localStorage.removeItem("user");
+        
         // Clear all data when logged out
         setInventory([]);
         setRetailers([]);
@@ -210,6 +228,7 @@ export function StoreProvider({ children }) {
 
   const value = {
     user, login, logout, addTransaction,
+    firebaseUser, authLoading,
 
     inventory, addInventoryItem, updateInventoryItem, deleteInventoryItem,
     loads, addLoad,

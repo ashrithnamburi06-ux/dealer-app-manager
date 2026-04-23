@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { onSnapshot } from "firebase/firestore";
 
@@ -14,6 +14,17 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const firebaseAuth = getAuth(app);
 
-export const auth = getAuth(app);
+// Enable auth persistence so users stay logged in across sessions
+// This must be called once during app initialization
+setPersistence(firebaseAuth, browserLocalPersistence)
+  .then(() => {
+    console.log("✅ Firebase auth persistence enabled (browserLocalPersistence)");
+  })
+  .catch((error) => {
+    console.error("❌ Error setting auth persistence:", error);
+  });
+
+export const auth = firebaseAuth;
 export const db = getFirestore(app);
