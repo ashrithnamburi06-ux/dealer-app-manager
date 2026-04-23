@@ -100,6 +100,12 @@ export default function OrderPage() {
   };
 
   const handlePreviewOrder = () => {
+    console.log("👀 Preview button clicked");
+    console.log("Customer name:", customerName);
+    console.log("Customer phone:", customerPhone);
+    console.log("Cart items:", cart);
+    console.log("Custom items:", customItems);
+    
     // Validate customer details
     if (!customerName.trim()) {
       alert('Please enter customer name');
@@ -123,6 +129,7 @@ export default function OrderPage() {
       return;
     }
     
+    console.log("✅ Validation passed, setting showPreview to true");
     setShowPreview(true);
   };
 
@@ -151,10 +158,14 @@ export default function OrderPage() {
   };
 
   const handlePlaceOrder = async () => {
+    console.log("💳 Continue to Pay button clicked");
+    
     const totalAmount = calculateTotal();
     
     console.log("💳 Starting payment process");
     console.log("Total amount:", totalAmount);
+    console.log("Customer name:", customerName);
+    console.log("Customer phone:", customerPhone);
     
     if (totalAmount <= 0) {
       alert('Please add items to your cart');
@@ -431,7 +442,180 @@ export default function OrderPage() {
     );
   }
 
-  
+  // Preview Order Screen
+  if (showPreview) {
+    console.log("🖼️ Rendering preview screen");
+    const totalAmount = calculateTotal();
+    const orderItems = [];
+    
+    console.log("📦 Building order items from cart:", cart);
+    console.log("📦 Building order items from customItems:", customItems);
+    
+    Object.entries(cart).forEach(([itemId, qty]) => {
+      const item = inventory.find(i => i.id === itemId);
+      if (item) {
+        orderItems.push({
+          name: item.name,
+          price: Number(item.dealerBoxPrice || item.price || 0),
+          quantity: qty,
+          total: Number(item.dealerBoxPrice || item.price || 0) * qty
+        });
+      }
+    });
+
+    customItems.forEach(item => {
+      orderItems.push({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        total: item.price * item.quantity,
+        isCustom: true
+      });
+    });
+
+    console.log("📋 Final order items:", orderItems);
+    console.log("💰 Total amount:", totalAmount);
+
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#F5F6FA', paddingBottom: '100px' }}>
+        {/* Header */}
+        <div style={{ 
+          backgroundColor: '#FFFFFF', 
+          color: '#1F2937', 
+          padding: '24px 20px',
+          borderBottom: '1px solid #E5E7EB'
+        }}>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '700' }}>Order Preview</h2>
+          <p style={{ margin: '4px 0 0', opacity: 0.7, fontSize: '14px' }}>Review your order before payment</p>
+        </div>
+
+        {/* Preview Content */}
+        <div style={{ maxWidth: '800px', margin: '20px auto', padding: '0 20px' }}>
+          {/* Customer Details */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            borderRadius: '16px', 
+            padding: '24px', 
+            boxShadow: '0 6px 20px rgba(0,0,0,0.08)', 
+            marginBottom: '20px' 
+          }}>
+            <h3 style={{ marginBottom: '20px', fontSize: '18px', fontWeight: '600', color: '#6C7AE0' }}>Customer Details</h3>
+            <div style={{ marginBottom: '16px' }}>
+              <span style={{ color: '#6B7280', fontSize: '14px', fontWeight: '500' }}>Name:</span>
+              <div style={{ fontWeight: '600', fontSize: '16px', color: '#1F2937', marginTop: '4px' }}>{customerName}</div>
+            </div>
+            <div>
+              <span style={{ color: '#6B7280', fontSize: '14px', fontWeight: '500' }}>Phone:</span>
+              <div style={{ fontWeight: '600', fontSize: '16px', color: '#1F2937', marginTop: '4px' }}>{customerPhone}</div>
+            </div>
+          </div>
+
+          {/* Order Items */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            borderRadius: '16px', 
+            padding: '24px', 
+            boxShadow: '0 6px 20px rgba(0,0,0,0.08)', 
+            marginBottom: '20px' 
+          }}>
+            <h3 style={{ marginBottom: '20px', fontSize: '18px', fontWeight: '600', color: '#6C7AE0' }}>Order Items</h3>
+            {orderItems.map((item, index) => (
+              <div key={index} style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                padding: '12px 0',
+                borderBottom: index < orderItems.length - 1 ? '1px solid #F3F4F6' : 'none'
+              }}>
+                <div>
+                  <div style={{ fontWeight: '600', color: '#1F2937', fontSize: '16px' }}>{item.name}</div>
+                  <div style={{ color: '#6B7280', fontSize: '14px', marginTop: '4px' }}>
+                    ₹{item.price.toLocaleString()} × {item.quantity}
+                  </div>
+                </div>
+                <div style={{ fontWeight: '700', color: '#6C7AE0', fontSize: '18px' }}>
+                  ₹{item.total.toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Total */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            borderRadius: '16px', 
+            padding: '24px', 
+            boxShadow: '0 6px 20px rgba(0,0,0,0.08)', 
+            marginBottom: '20px' 
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '18px', fontWeight: '600', color: '#1F2937' }}>Total Amount</span>
+              <span style={{ fontSize: '32px', fontWeight: '700', color: '#6C7AE0' }}>
+                ₹{totalAmount.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky Buttons */}
+        <div style={{ 
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: 'white',
+          padding: '20px 24px',
+          boxShadow: '0 -6px 20px rgba(0,0,0,0.08)',
+          display: 'flex',
+          gap: '16px',
+          maxWidth: '800px',
+          margin: '0 auto'
+        }}>
+          <button 
+            onClick={handleEditOrder}
+            style={{ 
+              flex: 1,
+              padding: '16px 24px',
+              borderRadius: '12px',
+              border: '2px solid #6C7AE0',
+              backgroundColor: 'white',
+              color: '#6C7AE0',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            Edit Order
+          </button>
+          <button 
+            onClick={handlePlaceOrder}
+            disabled={paymentStatus === 'processing'}
+            style={{ 
+              flex: 1,
+              padding: '16px 24px',
+              borderRadius: '12px',
+              border: 'none',
+              background: paymentStatus === 'processing' 
+                ? '#9CA3AF' 
+                : 'linear-gradient(135deg, #6C7AE0 0%, #4F46E5 100%)',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: paymentStatus === 'processing' ? 'not-allowed' : 'pointer',
+              boxShadow: paymentStatus === 'processing' 
+                ? 'none' 
+                : '0 4px 12px rgba(108, 122, 224, 0.3)',
+              transition: 'all 0.2s'
+            }}
+          >
+            {paymentStatus === 'processing' ? 'Processing...' : 'Continue to Pay'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F5F6FA', paddingBottom: '100px' }}>
       {/* Header */}
@@ -786,170 +970,4 @@ export default function OrderPage() {
     </div>
   );
 
-  // Preview Order Screen
-  if (showPreview) {
-    const totalAmount = calculateTotal();
-    const orderItems = [];
-    
-    Object.entries(cart).forEach(([itemId, qty]) => {
-      const item = inventory.find(i => i.id === itemId);
-      if (item) {
-        orderItems.push({
-          name: item.name,
-          price: Number(item.dealerBoxPrice || item.price || 0),
-          quantity: qty,
-          total: Number(item.dealerBoxPrice || item.price || 0) * qty
-        });
-      }
-    });
-
-    customItems.forEach(item => {
-      orderItems.push({
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        total: item.price * item.quantity,
-        isCustom: true
-      });
-    });
-
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#F5F6FA', paddingBottom: '100px' }}>
-        {/* Header */}
-        <div style={{ 
-          backgroundColor: '#FFFFFF', 
-          color: '#1F2937', 
-          padding: '24px 20px',
-          borderBottom: '1px solid #E5E7EB'
-        }}>
-          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '700' }}>Order Preview</h2>
-          <p style={{ margin: '4px 0 0', opacity: 0.7, fontSize: '14px' }}>Review your order before payment</p>
-        </div>
-
-        {/* Preview Content */}
-        <div style={{ maxWidth: '800px', margin: '20px auto', padding: '0 20px' }}>
-          {/* Customer Details */}
-          <div style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '16px', 
-            padding: '24px', 
-            boxShadow: '0 6px 20px rgba(0,0,0,0.08)', 
-            marginBottom: '20px' 
-          }}>
-            <h3 style={{ marginBottom: '20px', fontSize: '18px', fontWeight: '600', color: '#6C7AE0' }}>Customer Details</h3>
-            <div style={{ marginBottom: '16px' }}>
-              <span style={{ color: '#6B7280', fontSize: '14px', fontWeight: '500' }}>Name:</span>
-              <div style={{ fontWeight: '600', fontSize: '16px', color: '#1F2937', marginTop: '4px' }}>{customerName}</div>
-            </div>
-            <div>
-              <span style={{ color: '#6B7280', fontSize: '14px', fontWeight: '500' }}>Phone:</span>
-              <div style={{ fontWeight: '600', fontSize: '16px', color: '#1F2937', marginTop: '4px' }}>{customerPhone}</div>
-            </div>
-          </div>
-
-          {/* Order Items */}
-          <div style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '16px', 
-            padding: '24px', 
-            boxShadow: '0 6px 20px rgba(0,0,0,0.08)', 
-            marginBottom: '20px' 
-          }}>
-            <h3 style={{ marginBottom: '20px', fontSize: '18px', fontWeight: '600', color: '#6C7AE0' }}>Order Items</h3>
-            {orderItems.map((item, index) => (
-              <div key={index} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                padding: '12px 0',
-                borderBottom: index < orderItems.length - 1 ? '1px solid #F3F4F6' : 'none'
-              }}>
-                <div>
-                  <div style={{ fontWeight: '600', color: '#1F2937', fontSize: '16px' }}>{item.name}</div>
-                  <div style={{ color: '#6B7280', fontSize: '14px', marginTop: '4px' }}>
-                    ₹{item.price.toLocaleString()} × {item.quantity}
-                  </div>
-                </div>
-                <div style={{ fontWeight: '700', color: '#6C7AE0', fontSize: '18px' }}>
-                  ₹{item.total.toLocaleString()}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Total */}
-          <div style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '16px', 
-            padding: '24px', 
-            boxShadow: '0 6px 20px rgba(0,0,0,0.08)', 
-            marginBottom: '20px' 
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '18px', fontWeight: '600', color: '#1F2937' }}>Total Amount</span>
-              <span style={{ fontSize: '32px', fontWeight: '700', color: '#6C7AE0' }}>
-                ₹{totalAmount.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Sticky Buttons */}
-        <div style={{ 
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: 'white',
-          padding: '20px 24px',
-          boxShadow: '0 -6px 20px rgba(0,0,0,0.08)',
-          display: 'flex',
-          gap: '16px',
-          maxWidth: '800px',
-          margin: '0 auto'
-        }}>
-          <button 
-            onClick={handleEditOrder}
-            style={{ 
-              flex: 1,
-              padding: '16px 24px',
-              borderRadius: '12px',
-              border: '2px solid #6C7AE0',
-              backgroundColor: 'white',
-              color: '#6C7AE0',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            Edit Order
-          </button>
-          <button 
-            onClick={handlePlaceOrder}
-            disabled={paymentStatus === 'processing'}
-            style={{ 
-              flex: 1,
-              padding: '16px 24px',
-              borderRadius: '12px',
-              border: 'none',
-              background: paymentStatus === 'processing' 
-                ? '#9CA3AF' 
-                : 'linear-gradient(135deg, #6C7AE0 0%, #4F46E5 100%)',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: paymentStatus === 'processing' ? 'not-allowed' : 'pointer',
-              boxShadow: paymentStatus === 'processing' 
-                ? 'none' 
-                : '0 4px 12px rgba(108, 122, 224, 0.3)',
-              transition: 'all 0.2s'
-            }}
-          >
-            {paymentStatus === 'processing' ? 'Processing...' : 'Continue to Pay'}
-          </button>
-        </div>
-      </div>
-    );
   }
-}
