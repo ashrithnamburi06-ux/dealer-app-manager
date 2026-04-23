@@ -32,6 +32,7 @@ export default function Dashboard() {
   const [expenses, setExpenses] = useState([]);
   const [user, setUser] = useState(null);
   const [retailers, setRetailers] = useState([]);
+  const [orders, setOrders] = useState([]);
 
   const [upi, setUpi] = useState("");
   const [showUpi, setShowUpi] = useState(false);
@@ -43,6 +44,7 @@ export default function Dashboard() {
     let unsub4 = () => {};
     let unsub5 = () => {};
     let unsub6 = () => {};
+    let unsub7 = () => {};
 
     const unsubAuth = onAuthStateChanged(auth, (u) => {
       if (!u) {
@@ -77,6 +79,10 @@ export default function Dashboard() {
         console.log("📊 Dashboard: Expenses updated, count:", data.length);
         setExpenses(data || []);
       });
+      unsub7 = subscribeOrders((data) => {
+        console.log("📊 Dashboard: Orders updated, count:", data.length);
+        setOrders(data || []);
+      });
     });
 
     return () => {
@@ -87,6 +93,7 @@ export default function Dashboard() {
       unsub4();
       unsub5();
       unsub6();
+      unsub7();
     };
   }, []);
 

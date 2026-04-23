@@ -58,7 +58,12 @@ app.post('/api/verify-payment', async (req, res) => {
     console.log('📡 [POST /api/verify-payment] Received request');
     console.log('📡 Request body:', req.body);
     
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const { 
+      razorpay_order_id, 
+      razorpay_payment_id, 
+      razorpay_signature,
+      orderData 
+    } = req.body;
     
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       console.error('❌ Missing required fields in request body');
@@ -82,6 +87,39 @@ app.post('/api/verify-payment', async (req, res) => {
     
     if (generated_signature === razorpay_signature) {
       console.log('✅ Payment verified successfully');
+      
+      // Save order to Firestore if Firebase Admin is initialized
+      if (db && orderData) {
+        try {
+          const { uid, items, totalAmount, customerName, customerPhone, orderId } = orderData;
+          
+          if (!uid) {
+            console.error('❌ Missing uid in orderData');
+            return res.status(400).json({ success: false, error: 'Missing uid in order data' });
+          }
+          
+          const orderRef = db.collection('users').doc(uid).collection('orders').doc();
+          
+          await orderRef.set({
+            items,
+            totalAmount: Number(totalAmount),
+            customerName,
+            customerPhone,
+            status: 'paid',
+            razorpay_order_id,
+            razorpay_payment_id,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            paidAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+          
+          console.log('✅ Order saved to Firestore:', orderRef.id);
+        } catch (firestoreError) {
+          console.error('❌ Error saving order to Firestore:', firestoreError);
+          // Continue to return success even if Firestore save fails
+          // Payment is still verified, just order save failed
+        }
+      }
+      
       res.json({ success: true });
     } else {
       console.log('❌ Payment verification failed - signatures do not match');

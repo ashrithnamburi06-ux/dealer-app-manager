@@ -385,3 +385,4 @@ export const subscribeSales = (cb) => safeSubscribe("sales", cb);
 export const subscribeLoads = (cb) => safeSubscribe("loads", cb);
 export const subscribeExpenses = (cb) => safeSubscribe("expenses", cb);
 export const subscribeRetailers = (cb) => safeSubscribe("retailers", cb);
+export const subscribeOrders = (cb) => safeSubscribe("orders", cb);

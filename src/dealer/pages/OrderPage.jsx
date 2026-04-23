@@ -280,6 +280,7 @@ export default function OrderPage() {
                 razorpay_payment_id, 
                 razorpay_signature,
                 orderData: {
+                  uid: user.uid,
                   items: orderItems,
                   totalAmount,
                   customerName,
