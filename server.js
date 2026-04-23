@@ -62,6 +62,7 @@ app.post('/api/verify-payment', async (req, res) => {
       razorpay_order_id, 
       razorpay_payment_id, 
       razorpay_signature,
+      uid,
       orderData 
     } = req.body;
     
@@ -81,22 +82,24 @@ app.post('/api/verify-payment', async (req, res) => {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
     
-    console.log('🔐 Generated signature:', generated_signature);
-    console.log('🔐 Received signature:', razorpay_signature);
+    console.log('🔐 EXPECTED:', generated_signature);
+    console.log('🔐 RECEIVED:', razorpay_signature);
     console.log('🔐 Signatures match:', generated_signature === razorpay_signature);
     
     if (generated_signature === razorpay_signature) {
       console.log('✅ Payment verified successfully');
       
-      // Save order to Firestore if Firebase Admin is initialized
-      if (db && orderData) {
+      // Save order to Firestore if Firebase Admin is initialized and uid/orderData provided
+      // NOTE: Firebase Admin SDK needs to be imported and initialized for this to work
+      if (uid && orderData) {
+        console.log('💾 Attempting to save order to Firestore...');
+        console.log('💾 UID:', uid);
+        console.log('💾 Order data:', orderData);
+        
+        // TODO: Initialize Firebase Admin SDK and uncomment this code
+        /*
         try {
-          const { uid, items, totalAmount, customerName, customerPhone, orderId } = orderData;
-          
-          if (!uid) {
-            console.error('❌ Missing uid in orderData');
-            return res.status(400).json({ success: false, error: 'Missing uid in order data' });
-          }
+          const { items, totalAmount, customerName, customerPhone, orderId } = orderData;
           
           const orderRef = db.collection('users').doc(uid).collection('orders').doc();
           
@@ -118,8 +121,15 @@ app.post('/api/verify-payment', async (req, res) => {
           // Continue to return success even if Firestore save fails
           // Payment is still verified, just order save failed
         }
+        */
+        console.log('⚠️ Firestore save skipped (Firebase Admin not initialized)');
+      } else {
+        console.log('⚠️ Skipping Firestore save (missing uid or orderData)');
+        console.log('⚠️ UID provided:', !!uid);
+        console.log('⚠️ OrderData provided:', !!orderData);
       }
       
+      // Return success regardless of Firestore save status
       res.json({ success: true });
     } else {
       console.log('❌ Payment verification failed - signatures do not match');

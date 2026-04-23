@@ -54,9 +54,34 @@ export default function PaymentPage() {
           // Payment successful
           const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = response;
 
+          console.log("RAZORPAY RESPONSE:", response);
+
           try {
-            // Verify payment
-            const verification = await verifyPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+            // Get user uid
+            const uid = auth.currentUser?.uid || null;
+            console.log("User uid:", uid);
+
+            // Prepare order data for backend
+            const orderDataPayload = {
+              items: order?.items || [],
+              totalAmount: order?.amount,
+              customerName: order?.customerName || '',
+              customerPhone: order?.customerPhone || '',
+              orderId: id
+            };
+
+            console.log("Sending order data to backend:", orderDataPayload);
+
+            // Verify payment with complete data
+            const verification = await verifyPayment(
+              razorpay_order_id,
+              razorpay_payment_id,
+              razorpay_signature,
+              uid,
+              orderDataPayload
+            );
+
+            console.log("Verification result:", verification);
 
             if (verification.success) {
               // Update Firestore order
