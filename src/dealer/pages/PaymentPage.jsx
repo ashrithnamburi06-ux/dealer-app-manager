@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { createPaymentOrder, verifyPayment } from './services/paymentService';
 import { getOrder, updateOrderStatus } from './services/orderService';
 import { generateInvoicePDF } from '../../utils/invoiceGenerator';
+import { auth, db } from '@/firebase';
+import { addDoc, collection } from 'firebase/firestore';
 
 export default function PaymentPage() {
   const { id } = useParams();
@@ -57,36 +59,20 @@ export default function PaymentPage() {
           console.log("RAZORPAY RESPONSE:", response);
 
           try {
-            // Get user uid
-            const uid = auth.currentUser?.uid || null;
-            console.log("User uid:", uid);
-
-            // Prepare order data for backend
-            const orderDataPayload = {
-              items: order?.items || [],
-              totalAmount: order?.amount,
-              customerName: order?.customerName || '',
-              customerPhone: order?.customerPhone || '',
-              orderId: id
-            };
-
-            console.log("Sending order data to backend:", orderDataPayload);
-
-            // Verify payment with complete data
+            // Verify payment signature (backend only verifies signature)
             const verification = await verifyPayment(
               razorpay_order_id,
               razorpay_payment_id,
-              razorpay_signature,
-              uid,
-              orderDataPayload
+              razorpay_signature
             );
 
             console.log("Verification result:", verification);
 
             if (verification.success) {
-              // Update Firestore order
+              // Update existing order status (order already exists, was created before payment)
               try {
                 await updateOrderStatus(id, razorpay_payment_id, razorpay_order_id);
+                console.log('✅ Order status updated to paid');
                 setPaymentStatus('success');
               } catch (updateErr) {
                 // Handle race condition: if order was already paid by another request

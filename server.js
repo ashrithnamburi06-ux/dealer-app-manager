@@ -52,94 +52,47 @@ app.post('/api/create-order', async (req, res) => {
   }
 });
 
-// Verify Payment API
+// Verify Payment API - ONLY verifies signature, does NOT save order
 app.post('/api/verify-payment', async (req, res) => {
   try {
     console.log('📡 [POST /api/verify-payment] Received request');
-    console.log('📡 Request body:', req.body);
     
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const { 
       razorpay_order_id, 
       razorpay_payment_id, 
-      razorpay_signature,
-      uid,
-      orderData 
-    } = req.body;
+      razorpay_signature
+    } = body;
     
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      console.error('❌ Missing required fields in request body');
+      console.error('❌ Missing required fields');
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
     
     // Use the correct Razorpay key secret
     const secret = process.env.RAZORPAY_KEY_SECRET || 'xYrO6HaI0KRpKGcSXYTXOiFH';
-    console.log('🔑 Using secret key (first 8 chars):', secret.substring(0, 8) + '...');
     
     // Generate HMAC SHA256 signature
     const crypto = require('crypto');
-    const generated_signature = crypto
+    const expected = crypto
       .createHmac('sha256', secret)
-      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .update(razorpay_order_id + '|' + razorpay_payment_id)
       .digest('hex');
     
-    console.log('🔐 EXPECTED:', generated_signature);
+    console.log('🔐 EXPECTED:', expected);
     console.log('🔐 RECEIVED:', razorpay_signature);
-    console.log('🔐 Signatures match:', generated_signature === razorpay_signature);
+    console.log('🔐 Match:', expected === razorpay_signature);
     
-    if (generated_signature === razorpay_signature) {
-      console.log('✅ Payment verified successfully');
-      
-      // Save order to Firestore if Firebase Admin is initialized and uid/orderData provided
-      // NOTE: Firebase Admin SDK needs to be imported and initialized for this to work
-      if (uid && orderData) {
-        console.log('💾 Attempting to save order to Firestore...');
-        console.log('💾 UID:', uid);
-        console.log('💾 Order data:', orderData);
-        
-        // TODO: Initialize Firebase Admin SDK and uncomment this code
-        /*
-        try {
-          const { items, totalAmount, customerName, customerPhone, orderId } = orderData;
-          
-          const orderRef = db.collection('users').doc(uid).collection('orders').doc();
-          
-          await orderRef.set({
-            items,
-            totalAmount: Number(totalAmount),
-            customerName,
-            customerPhone,
-            status: 'paid',
-            razorpay_order_id,
-            razorpay_payment_id,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            paidAt: admin.firestore.FieldValue.serverTimestamp()
-          });
-          
-          console.log('✅ Order saved to Firestore:', orderRef.id);
-        } catch (firestoreError) {
-          console.error('❌ Error saving order to Firestore:', firestoreError);
-          // Continue to return success even if Firestore save fails
-          // Payment is still verified, just order save failed
-        }
-        */
-        console.log('⚠️ Firestore save skipped (Firebase Admin not initialized)');
-      } else {
-        console.log('⚠️ Skipping Firestore save (missing uid or orderData)');
-        console.log('⚠️ UID provided:', !!uid);
-        console.log('⚠️ OrderData provided:', !!orderData);
-      }
-      
-      // Return success regardless of Firestore save status
-      res.json({ success: true });
-    } else {
-      console.log('❌ Payment verification failed - signatures do not match');
-      res.json({ success: false, error: 'Signature verification failed' });
+    if (expected !== razorpay_signature) {
+      console.log('❌ Signature verification failed');
+      return res.status(400).json({ success: false });
     }
+    
+    console.log('✅ Payment verified successfully');
+    return res.status(200).json({ success: true });
   } catch (error) {
-    console.error('❌ Error verifying payment:', error);
-    console.error('❌ Error details:', error.message);
-    console.error('❌ Error stack:', error.stack);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('❌ VERIFY ERROR:', error);
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
