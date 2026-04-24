@@ -69,8 +69,14 @@ app.post('/api/verify-payment', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
     
+    // Debug logs
+    console.log('ORDER ID:', razorpay_order_id);
+    console.log('PAYMENT ID:', razorpay_payment_id);
+    console.log('RECEIVED SIGNATURE:', razorpay_signature);
+    
     // Use the correct Razorpay key secret
     const secret = process.env.RAZORPAY_KEY_SECRET || 'xYrO6HaI0KRpKGcSXYTXOiFH';
+    console.log('KEY SECRET (first 8 chars):', secret.substring(0, 8) + '...');
     
     // Generate HMAC SHA256 signature
     const crypto = require('crypto');
@@ -79,12 +85,11 @@ app.post('/api/verify-payment', async (req, res) => {
       .update(razorpay_order_id + '|' + razorpay_payment_id)
       .digest('hex');
     
-    console.log('🔐 EXPECTED:', expected);
-    console.log('🔐 RECEIVED:', razorpay_signature);
-    console.log('🔐 Match:', expected === razorpay_signature);
+    console.log('EXPECTED SIGNATURE:', expected);
+    console.log('SIGNATURE MATCH:', expected === razorpay_signature);
     
     if (expected !== razorpay_signature) {
-      console.log('❌ Signature verification failed');
+      console.log('❌ Signature verification failed - MISMATCH');
       return res.status(400).json({ success: false });
     }
     

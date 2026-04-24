@@ -57,6 +57,9 @@ export default function PaymentPage() {
           const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = response;
 
           console.log("RAZORPAY RESPONSE:", response);
+          console.log("ORDER ID:", razorpay_order_id);
+          console.log("PAYMENT ID:", razorpay_payment_id);
+          console.log("SIGNATURE:", razorpay_signature);
 
           try {
             // Verify payment signature (backend only verifies signature)
