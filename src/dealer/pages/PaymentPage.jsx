@@ -72,20 +72,50 @@ export default function PaymentPage() {
             console.log("Verification result:", verification);
 
             if (verification.success) {
-              // Update existing order status (order already exists, was created before payment)
+              // Get user uid
+              const uid = auth.currentUser?.uid;
+              if (!uid) {
+                console.error('❌ User not authenticated');
+                setPaymentStatus('failed');
+                setError('User not authenticated');
+                return;
+              }
+
+              console.log('💾 Saving order to Firestore...');
+              console.log('💾 User UID:', uid);
+
+              // Save order to Firestore
               try {
-                await updateOrderStatus(id, razorpay_payment_id, razorpay_order_id);
-                console.log('✅ Order status updated to paid');
-                setPaymentStatus('success');
-              } catch (updateErr) {
-                // Handle race condition: if order was already paid by another request
-                if (updateErr.message === 'Order already paid') {
-                  setPaymentStatus('already_paid');
-                } else {
-                  console.error('Error updating order:', updateErr);
-                  setPaymentStatus('failed');
-                  setError('Failed to update order. Please contact support.');
+                await addDoc(
+                  collection(db, "users", uid, "orders"),
+                  {
+                    items: order?.items || [],
+                    totalAmount: order?.amount,
+                    customerName: order?.customerName || '',
+                    customerPhone: order?.customerPhone || '',
+                    status: "paid",
+                    razorpay_order_id,
+                    razorpay_payment_id,
+                    createdAt: new Date().toISOString(),
+                    paidAt: new Date().toISOString()
+                  }
+                );
+                console.log('✅ Order saved successfully to Firestore');
+
+                // Update existing order status if it exists
+                try {
+                  await updateOrderStatus(id, razorpay_payment_id, razorpay_order_id);
+                  console.log('✅ Existing order status updated');
+                } catch (updateErr) {
+                  // Order might not exist, that's okay since we just created it
+                  console.log('ℹ️ Could not update existing order (may not exist):', updateErr.message);
                 }
+
+                setPaymentStatus('success');
+              } catch (saveErr) {
+                console.error('❌ Error saving order:', saveErr);
+                setPaymentStatus('failed');
+                setError('Failed to save order. Please contact support.');
               }
             } else {
               setPaymentStatus('failed');
